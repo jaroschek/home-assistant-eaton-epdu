@@ -2,7 +2,8 @@
   "domain": "snmp_epdu",
   "name": "SNMP ePDU",
   "config_flow": true,
-  "documentation": "https://www.home-assistant.io/integrations/snmp_epdu",
+  "documentation": "https://github.com/jaroschek/home-assistant-snmp-epdu",
+  "issue_tracker": "https://github.com/jaroschek/home-assistant-snmp-epdu/issues",
   "requirements": [],
   "ssdp": [],
   "zeroconf": [],
@@ -11,5 +12,6 @@
   "codeowners": [
     "@jaroschek"
   ],
-  "iot_class": "local_polling"
+  "iot_class": "local_polling",
+  "version": "22.08.29"
 }
