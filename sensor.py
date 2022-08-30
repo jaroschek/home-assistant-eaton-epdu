@@ -13,7 +13,7 @@ from homeassistant.const import (
     ELECTRIC_CURRENT_AMPERE,
     ELECTRIC_POTENTIAL_VOLT,
     POWER_WATT,
-    ENERGY_WATT_HOUR,
+    ENERGY_KILO_WATT_HOUR,
 )
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
@@ -163,10 +163,11 @@ class SnmpInputWattHoursSensorEntity(SnmpInputSensorEntity, SensorEntity):
     """Representation of a Eaton ePDU input watt hours sensor."""
 
     _attr_device_class = SensorDeviceClass.ENERGY
-    _attr_native_unit_of_measurement = ENERGY_WATT_HOUR
+    _attr_native_unit_of_measurement = ENERGY_KILO_WATT_HOUR
     _attr_state_class = SensorStateClass.TOTAL_INCREASING
 
-    _name_suffix = "Watt Hours"
+    _multiplier = 0.001
+    _name_suffix = "Kilowatt Hours"
 
     def __init__(self, coordinator: SnmpCoordinator, index: int) -> None:
         """Initialize a Eaton ePDU input watt hours sensor."""
@@ -233,10 +234,11 @@ class SnmpOutletWattHoursSensorEntity(SnmpOutletSensorEntity, SensorEntity):
     """Representation of a Eaton ePDU outlet watt hours sensor."""
 
     _attr_device_class = SensorDeviceClass.ENERGY
-    _attr_native_unit_of_measurement = ENERGY_WATT_HOUR
+    _attr_native_unit_of_measurement = ENERGY_KILO_WATT_HOUR
     _attr_state_class = SensorStateClass.TOTAL_INCREASING
 
-    _name_suffix = "Watt Hours"
+    _multiplier = 0.001
+    _name_suffix = "Kilowatt Hours"
 
     def __init__(self, coordinator: SnmpCoordinator, index: int) -> None:
         """Initialize a Eaton ePDU outlet watt hours sensor."""
