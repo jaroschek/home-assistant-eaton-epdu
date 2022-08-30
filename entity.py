@@ -1,4 +1,4 @@
-"""Definition of base SNMP ePDU Entity"""
+"""Definition of base Eaton ePDU Entity"""
 from __future__ import annotations
 
 from homeassistant.helpers.entity import DeviceInfo, Entity

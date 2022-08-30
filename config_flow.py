@@ -1,4 +1,4 @@
-"""Config flow for SNMP ePDU integration."""
+"""Config flow for Eaton ePDU integration."""
 from __future__ import annotations
 
 import voluptuous as vol
@@ -116,7 +116,7 @@ def get_v3_schema(data: ConfigType) -> Schema:
 
 
 class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
-    """Handle a config flow for SNMP ePDU."""
+    """Handle a config flow for Eaton ePDU."""
 
     VERSION = 1
 
@@ -150,7 +150,7 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 step_id="v1", data_schema=get_v1_schema(self.data)
             )
 
-        _update_v1_input(data=self.data, v1_input=v1_input)
+        self.data.update(v1_input)
 
         return self.async_create_entry(title=self.data[ATTR_NAME], data=self.data)
 
@@ -161,7 +161,7 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 step_id="v3", data_schema=get_v3_schema(self.data)
             )
 
-        _update_v3_input(data=self.data, v3_input=v3_input)
+        self.data.update(v3_input)
 
         return self.async_create_entry(title=self.data[ATTR_NAME], data=self.data)
 
@@ -170,17 +170,17 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     def async_get_options_flow(
         config_entry: ConfigEntry,
     ) -> OptionsFlow:
-        """Options callback for SNMP ePDU."""
+        """Options callback for Eaton ePDU."""
         return OptionsFlow(config_entry)
 
 
 class OptionsFlow(config_entries.OptionsFlow):
-    """Handle a options flow for SNMP ePDU."""
+    """Handle a options flow for Eaton ePDU."""
 
     def __init__(self, entry: ConfigEntry) -> None:
-        """Initialize SNMP ePDU options flow."""
+        """Initialize Eaton ePDU options flow."""
         self.config_entry = entry
-        self.options = dict(entry.options)
+        self.data = dict(entry.data)
 
     async def async_step_init(self, user_input: ConfigType | None = None) -> FlowResult:
         """Manage the options."""
@@ -189,7 +189,7 @@ class OptionsFlow(config_entries.OptionsFlow):
     async def async_step_host(self, host_input: ConfigType | None = None) -> FlowResult:
         """Handle the host step."""
         if host_input is not None:
-            self.options.update(host_input)
+            self.data.update(host_input)
 
             if host_input[ATTR_VERSION] == SnmpVersion.V1:
                 return await self.async_step_v1()
@@ -198,30 +198,34 @@ class OptionsFlow(config_entries.OptionsFlow):
                 return await self.async_step_v3()
 
         return self.async_show_form(
-            step_id="host", data_schema=get_host_schema_options(data=self.options)
+            step_id="host", data_schema=get_host_schema_options(data=self.data)
         )
 
     async def async_step_v1(self, v1_input: ConfigType | None = None) -> FlowResult:
         """Handle the v1 step."""
         if v1_input is None:
             return self.async_show_form(
-                step_id="v1", data_schema=get_v1_schema(self.options)
+                step_id="v1", data_schema=get_v1_schema(self.data)
             )
 
-        self.options.update(v1_input)
+        self.data.update(v1_input)
 
-        return self.async_create_entry(title="", data=self.options)
+        self.hass.config_entries.async_update_entry(self.config_entry, data=self.data)
+
+        return self.async_create_entry(title="", data={})
 
     async def async_step_v3(self, v3_input: ConfigType | None = None) -> FlowResult:
         """Handle the v3 step."""
         if v3_input is None:
             return self.async_show_form(
-                step_id="v3", data_schema=get_v3_schema(self.options)
+                step_id="v3", data_schema=get_v3_schema(self.data)
             )
 
-        self.options.update(v3_input)
+        self.data.update(v3_input)
 
-        return self.async_create_entry(title="", data=self.options)
+        self.hass.config_entries.async_update_entry(self.config_entry, data=self.data)
+
+        return self.async_create_entry(title="", data={})
 
 
 class CannotConnect(HomeAssistantError):
@@ -230,19 +234,3 @@ class CannotConnect(HomeAssistantError):
 
 class InvalidAuth(HomeAssistantError):
     """Error to indicate there is invalid auth."""
-
-
-def _update_v1_input(data: ConfigType, v1_input: ConfigType) -> None:
-    if v1_input is not None:
-        data[ATTR_COMMUNITY] = v1_input[ATTR_COMMUNITY]
-
-
-def _update_v3_input(data: ConfigType, v3_input: ConfigType) -> None:
-    if v3_input is not None:
-        data[ATTR_USERNAME] = v3_input[ATTR_USERNAME]
-        if ATTR_AUTH_KEY in v3_input:
-            data[ATTR_AUTH_KEY] = v3_input[ATTR_AUTH_KEY]
-        data[ATTR_AUTH_PROTOCOL] = v3_input[ATTR_AUTH_PROTOCOL]
-        if ATTR_PRIV_KEY in v3_input:
-            data[ATTR_PRIV_KEY] = v3_input[ATTR_PRIV_KEY] or None
-        data[ATTR_PRIV_PROTOCOL] = v3_input[ATTR_PRIV_PROTOCOL]

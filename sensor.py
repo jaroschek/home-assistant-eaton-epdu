@@ -1,4 +1,4 @@
-"""Support for SNMP ePDU sensors."""
+"""Support for Eaton ePDU sensors."""
 from __future__ import annotations
 
 from datetime import timedelta
@@ -81,7 +81,7 @@ async def async_setup_entry(
 
 
 class SnmpSensorEntity(SnmpEntity, SensorEntity):
-    """Representation of a SNMP ePDU sensor."""
+    """Representation of a Eaton ePDU sensor."""
 
     _attr_state_class = SensorStateClass.MEASUREMENT
 
@@ -94,7 +94,7 @@ class SnmpSensorEntity(SnmpEntity, SensorEntity):
     _name_suffix: str = ""
 
     def __init__(self, api: SnmpApi, device: dict) -> None:
-        """Initialize a SNMP ePDU sensor."""
+        """Initialize a Eaton ePDU sensor."""
         super().__init__(api, device)
         data = self._api.get(oids=[self._name_oid, self._value_oid])
         self._attr_name = f"{self._device.get(SNMP_OID_UNITS_PRODUCT_NAME)} {self._name_prefix} {data.get(self._name_oid)} {self._name_suffix}"
@@ -112,18 +112,18 @@ class SnmpSensorEntity(SnmpEntity, SensorEntity):
 
 
 class SnmpInputSensorEntity(SnmpSensorEntity, SensorEntity):
-    """Representation of a SNMP ePDU input sensor."""
+    """Representation of a Eaton ePDU input sensor."""
 
     _name_prefix = "Input"
 
     def __init__(self, api: SnmpApi, device: dict, index: int) -> None:
-        """Initialize a SNMP ePDU input sensor."""
+        """Initialize a Eaton ePDU input sensor."""
         self._name_oid = SNMP_OID_INPUTS_FEED_NAME.replace("x", str(index))
         super().__init__(api, device)
 
 
 class SnmpInputCurrentSensorEntity(SnmpInputSensorEntity, SensorEntity):
-    """Representation of a SNMP ePDU input current sensor."""
+    """Representation of a Eaton ePDU input current sensor."""
 
     _attr_device_class = SensorDeviceClass.CURRENT
     _attr_native_unit_of_measurement = ELECTRIC_CURRENT_AMPERE
@@ -132,13 +132,13 @@ class SnmpInputCurrentSensorEntity(SnmpInputSensorEntity, SensorEntity):
     _name_suffix = "Current"
 
     def __init__(self, api: SnmpApi, device: dict, index: int) -> None:
-        """Initialize a SNMP ePDU input current sensor."""
+        """Initialize a Eaton ePDU input current sensor."""
         self._value_oid = SNMP_OID_INPUTS_CURRENT.replace("x", str(index))
         super().__init__(api, device, index)
 
 
 class SnmpInputVoltageSensorEntity(SnmpInputSensorEntity, SensorEntity):
-    """Representation of a SNMP ePDU input voltage sensor."""
+    """Representation of a Eaton ePDU input voltage sensor."""
 
     _attr_device_class = SensorDeviceClass.VOLTAGE
     _attr_native_unit_of_measurement = ELECTRIC_POTENTIAL_VOLT
@@ -147,13 +147,13 @@ class SnmpInputVoltageSensorEntity(SnmpInputSensorEntity, SensorEntity):
     _name_suffix = "Voltage"
 
     def __init__(self, api: SnmpApi, device: dict, index: int) -> None:
-        """Initialize a SNMP ePDU input voltage sensor."""
+        """Initialize a Eaton ePDU input voltage sensor."""
         self._value_oid = SNMP_OID_INPUTS_VOLTAGE.replace("x", str(index))
         super().__init__(api, device, index)
 
 
 class SnmpInputWattsSensorEntity(SnmpInputSensorEntity, SensorEntity):
-    """Representation of a SNMP ePDU input watts sensor."""
+    """Representation of a Eaton ePDU input watts sensor."""
 
     _attr_device_class = SensorDeviceClass.POWER
     _attr_native_unit_of_measurement = POWER_WATT
@@ -161,13 +161,13 @@ class SnmpInputWattsSensorEntity(SnmpInputSensorEntity, SensorEntity):
     _name_suffix = "Watts"
 
     def __init__(self, api: SnmpApi, device: dict, index: int) -> None:
-        """Initialize a SNMP ePDU input watts sensor."""
+        """Initialize a Eaton ePDU input watts sensor."""
         self._value_oid = SNMP_OID_INPUTS_WATTS.replace("x", str(index))
         super().__init__(api, device, index)
 
 
 class SnmpInputWattHoursSensorEntity(SnmpInputSensorEntity, SensorEntity):
-    """Representation of a SNMP ePDU input watt hours sensor."""
+    """Representation of a Eaton ePDU input watt hours sensor."""
 
     _attr_device_class = SensorDeviceClass.ENERGY
     _attr_native_unit_of_measurement = ENERGY_WATT_HOUR
@@ -176,24 +176,24 @@ class SnmpInputWattHoursSensorEntity(SnmpInputSensorEntity, SensorEntity):
     _name_suffix = "Watt Hours"
 
     def __init__(self, api: SnmpApi, device: dict, index: int) -> None:
-        """Initialize a SNMP ePDU input watt hours sensor."""
+        """Initialize a Eaton ePDU input watt hours sensor."""
         self._value_oid = SNMP_OID_INPUTS_WATT_HOURS.replace("x", str(index))
         super().__init__(api, device, index)
 
 
 class SnmpOutletSensorEntity(SnmpSensorEntity, SensorEntity):
-    """Representation of a SNMP ePDU outlet sensor."""
+    """Representation of a Eaton ePDU outlet sensor."""
 
     _name_prefix = "Outlet"
 
     def __init__(self, api: SnmpApi, device: dict, index: int) -> None:
-        """Initialize a SNMP ePDU outlet sensor."""
+        """Initialize a Eaton ePDU outlet sensor."""
         self._name_oid = SNMP_OID_OUTLETS_DESIGNATOR.replace("x", str(index))
         super().__init__(api, device)
 
 
 class SnmpOutletCurrentSensorEntity(SnmpOutletSensorEntity, SensorEntity):
-    """Representation of a SNMP ePDU outlet current sensor."""
+    """Representation of a Eaton ePDU outlet current sensor."""
 
     _attr_device_class = SensorDeviceClass.CURRENT
     _attr_native_unit_of_measurement = ELECTRIC_CURRENT_AMPERE
@@ -202,13 +202,13 @@ class SnmpOutletCurrentSensorEntity(SnmpOutletSensorEntity, SensorEntity):
     _name_suffix = "Current"
 
     def __init__(self, api: SnmpApi, device: dict, index: int) -> None:
-        """Initialize a SNMP ePDU outlet current sensor."""
+        """Initialize a Eaton ePDU outlet current sensor."""
         self._value_oid = SNMP_OID_OUTLETS_CURRENT.replace("x", str(index))
         super().__init__(api, device, index)
 
 
 class SnmpOutletVoltageSensorEntity(SnmpOutletSensorEntity, SensorEntity):
-    """Representation of a SNMP ePDU outlet voltage sensor."""
+    """Representation of a Eaton ePDU outlet voltage sensor."""
 
     _attr_device_class = SensorDeviceClass.VOLTAGE
     _attr_native_unit_of_measurement = ELECTRIC_POTENTIAL_VOLT
@@ -217,13 +217,13 @@ class SnmpOutletVoltageSensorEntity(SnmpOutletSensorEntity, SensorEntity):
     _name_suffix = "Voltage"
 
     def __init__(self, api: SnmpApi, device: dict, index: int) -> None:
-        """Initialize a SNMP ePDU outlet voltage sensor."""
+        """Initialize a Eaton ePDU outlet voltage sensor."""
         self._value_oid = SNMP_OID_OUTLETS_VOLTAGE.replace("x", str(index))
         super().__init__(api, device, index)
 
 
 class SnmpOutletWattsSensorEntity(SnmpOutletSensorEntity, SensorEntity):
-    """Representation of a SNMP ePDU outlet watts sensor."""
+    """Representation of a Eaton ePDU outlet watts sensor."""
 
     _attr_device_class = SensorDeviceClass.POWER
     _attr_native_unit_of_measurement = POWER_WATT
@@ -231,13 +231,13 @@ class SnmpOutletWattsSensorEntity(SnmpOutletSensorEntity, SensorEntity):
     _name_suffix = "Watts"
 
     def __init__(self, api: SnmpApi, device: dict, index: int) -> None:
-        """Initialize a SNMP ePDU outlet watts sensor."""
+        """Initialize a Eaton ePDU outlet watts sensor."""
         self._value_oid = SNMP_OID_OUTLETS_WATTS.replace("x", str(index))
         super().__init__(api, device, index)
 
 
 class SnmpOutletWattHoursSensorEntity(SnmpOutletSensorEntity, SensorEntity):
-    """Representation of a SNMP ePDU outlet watt hours sensor."""
+    """Representation of a Eaton ePDU outlet watt hours sensor."""
 
     _attr_device_class = SensorDeviceClass.ENERGY
     _attr_native_unit_of_measurement = ENERGY_WATT_HOUR
@@ -246,6 +246,6 @@ class SnmpOutletWattHoursSensorEntity(SnmpOutletSensorEntity, SensorEntity):
     _name_suffix = "Watt Hours"
 
     def __init__(self, api: SnmpApi, device: dict, index: int) -> None:
-        """Initialize a SNMP ePDU outlet watt hours sensor."""
+        """Initialize a Eaton ePDU outlet watt hours sensor."""
         self._value_oid = SNMP_OID_OUTLETS_WATT_HOURS.replace("x", str(index))
         super().__init__(api, device, index)

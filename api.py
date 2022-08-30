@@ -1,4 +1,4 @@
-"""API for SNMP ePDU."""
+"""API for Eaton ePDU."""
 from __future__ import annotations
 
 from homeassistant.config_entries import ConfigEntry
@@ -44,33 +44,29 @@ PRIV_MAP = {
 
 
 class SnmpApi:
-    """Provide an api for SNMP ePDU."""
+    """Provide an api for Eaton ePDU."""
 
     def __init__(self, entry: ConfigEntry) -> None:
         """Init the SnmpApi"""
         self._target = hlapi.UdpTransportTarget(
             (
-                entry.options.get(ATTR_HOST),
-                entry.options.get(ATTR_PORT, SNMP_PORT_DEFAULT),
+                entry.data.get(ATTR_HOST),
+                entry.data.get(ATTR_PORT, SNMP_PORT_DEFAULT),
             )
         )
 
-        self._version = entry.options.get(ATTR_VERSION)
+        self._version = entry.data.get(ATTR_VERSION)
         if self._version == SnmpVersion.V1:
             self._credentials = hlapi.CommunityData(
-                entry.options.get(ATTR_COMMUNITY), mpModel=0
+                entry.data.get(ATTR_COMMUNITY), mpModel=0
             )
         elif self._version == SnmpVersion.V3:
             self._credentials = hlapi.UsmUserData(
-                entry.options.get(ATTR_USERNAME),
-                entry.options.get(ATTR_AUTH_KEY),
-                entry.options.get(ATTR_PRIV_KEY),
-                AUTH_MAP.get(
-                    entry.options.get(ATTR_AUTH_PROTOCOL, AuthProtocol.NO_AUTH)
-                ),
-                PRIV_MAP.get(
-                    entry.options.get(ATTR_PRIV_PROTOCOL, PrivProtocol.NO_PRIV)
-                ),
+                entry.data.get(ATTR_USERNAME),
+                entry.data.get(ATTR_AUTH_KEY),
+                entry.data.get(ATTR_PRIV_KEY),
+                AUTH_MAP.get(entry.data.get(ATTR_AUTH_PROTOCOL, AuthProtocol.NO_AUTH)),
+                PRIV_MAP.get(entry.data.get(ATTR_PRIV_PROTOCOL, PrivProtocol.NO_PRIV)),
             )
 
     @staticmethod

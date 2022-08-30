@@ -1,6 +1,6 @@
 {
-  "domain": "snmp_epdu",
-  "name": "SNMP ePDU",
+  "domain": "eaton_epdu",
+  "name": "Eaton ePDU",
   "config_flow": true,
   "documentation": "https://github.com/jaroschek/home-assistant-snmp-epdu",
   "issue_tracker": "https://github.com/jaroschek/home-assistant-snmp-epdu/issues",

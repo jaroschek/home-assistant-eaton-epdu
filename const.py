@@ -1,10 +1,10 @@
-"""Constants for the SNMP ePDU integration."""
+"""Constants for the Eaton ePDU integration."""
 from __future__ import annotations
 
 from homeassistant.backports.enum import StrEnum
 from homeassistant.const import Platform
 
-DOMAIN = "snmp_epdu"
+DOMAIN = "eaton_epdu"
 
 PLATFORMS = [
     Platform.SENSOR,

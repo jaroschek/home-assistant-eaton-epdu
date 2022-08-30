@@ -1,4 +1,4 @@
-"""The SNMP ePDU integration."""
+"""The Eaton ePDU integration."""
 from __future__ import annotations
 
 from homeassistant.config_entries import ConfigEntry
@@ -17,7 +17,7 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
 
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
-    """Set up SNMP ePDU from a config entry."""
+    """Set up Eaton ePDU from a config entry."""
     hass.data[DOMAIN][entry.entry_id] = {SNMP_API_CLIENT: SnmpApi(entry)}
 
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
