@@ -1,9 +1,9 @@
 """Definition of base Eaton ePDU Entity"""
 from __future__ import annotations
 
-from homeassistant.helpers.entity import DeviceInfo, Entity
+from homeassistant.helpers.entity import DeviceInfo
+from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
-from .api import SnmpApi
 from .const import (
     DOMAIN,
     SNMP_OID_UNITS_FIRMWARE_VERSION,
@@ -11,23 +11,21 @@ from .const import (
     SNMP_OID_UNITS_PRODUCT_NAME,
     SNMP_OID_UNITS_SERIAL_NUMBER,
 )
+from .coordinator import SnmpCoordinator
 
 
-class SnmpEntity(Entity):
+class SnmpEntity(CoordinatorEntity[SnmpCoordinator]):
     """Base class for myUplink Entities."""
-
-    def __init__(self, api: SnmpApi, device: dict) -> None:
-        """Initialize class."""
-        self._api = api
-        self._device = device
 
     @property
     def device_info(self):
         """Return the device_info of the device."""
         return DeviceInfo(
-            identifiers={(DOMAIN, self._device.get(SNMP_OID_UNITS_SERIAL_NUMBER))},
+            identifiers={
+                (DOMAIN, self.coordinator.data.get(SNMP_OID_UNITS_SERIAL_NUMBER))
+            },
             manufacturer="Eaton",
-            model=self._device.get(SNMP_OID_UNITS_PART_NUMBER),
-            name=self._device.get(SNMP_OID_UNITS_PRODUCT_NAME),
-            sw_version=self._device.get(SNMP_OID_UNITS_FIRMWARE_VERSION),
+            model=self.coordinator.data.get(SNMP_OID_UNITS_PART_NUMBER),
+            name=self.coordinator.data.get(SNMP_OID_UNITS_PRODUCT_NAME),
+            sw_version=self.coordinator.data.get(SNMP_OID_UNITS_FIRMWARE_VERSION),
         )

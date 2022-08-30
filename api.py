@@ -52,7 +52,8 @@ class SnmpApi:
             (
                 entry.data.get(ATTR_HOST),
                 entry.data.get(ATTR_PORT, SNMP_PORT_DEFAULT),
-            )
+            ),
+            10,
         )
 
         self._version = entry.data.get(ATTR_VERSION)
