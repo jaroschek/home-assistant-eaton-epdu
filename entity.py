@@ -25,7 +25,7 @@ class SnmpEntity(CoordinatorEntity[SnmpCoordinator]):
                 (DOMAIN, self.coordinator.data.get(SNMP_OID_UNITS_SERIAL_NUMBER))
             },
             manufacturer="Eaton",
-            model=self.coordinator.data.get(SNMP_OID_UNITS_PART_NUMBER),
-            name=self.coordinator.data.get(SNMP_OID_UNITS_PRODUCT_NAME),
+            model=self.coordinator.data.get(SNMP_OID_UNITS_PRODUCT_NAME),
+            name=self.coordinator.data.get(SNMP_OID_UNITS_PART_NUMBER),
             sw_version=self.coordinator.data.get(SNMP_OID_UNITS_FIRMWARE_VERSION),
         )
