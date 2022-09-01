@@ -27,7 +27,6 @@ from .const import (
     SNMP_OID_INPUTS_WATTS,
     SNMP_OID_OUTLETS_CURRENT,
     SNMP_OID_OUTLETS_DESIGNATOR,
-    SNMP_OID_OUTLETS_VOLTAGE,
     SNMP_OID_OUTLETS_WATT_HOURS,
     SNMP_OID_OUTLETS_WATTS,
     SNMP_OID_UNITS_INPUT_COUNT,
@@ -59,7 +58,6 @@ async def async_setup_entry(
 
     for index in range(1, coordinator.data.get(SNMP_OID_UNITS_OUTLET_COUNT, 0) + 1):
         entities.append(SnmpOutletCurrentSensorEntity(coordinator, index))
-        entities.append(SnmpOutletVoltageSensorEntity(coordinator, index))
         entities.append(SnmpOutletWattsSensorEntity(coordinator, index))
         entities.append(SnmpOutletWattHoursSensorEntity(coordinator, index))
 
@@ -191,6 +189,7 @@ class SnmpOutletCurrentSensorEntity(SnmpOutletSensorEntity, SensorEntity):
 
     _attr_device_class = SensorDeviceClass.CURRENT
     _attr_native_unit_of_measurement = ELECTRIC_CURRENT_AMPERE
+    _attr_entity_registry_enabled_default = False
 
     _multiplier = 0.001
     _name_suffix = "Current"
@@ -198,21 +197,6 @@ class SnmpOutletCurrentSensorEntity(SnmpOutletSensorEntity, SensorEntity):
     def __init__(self, coordinator: SnmpCoordinator, index: int) -> None:
         """Initialize a Eaton ePDU outlet current sensor."""
         self._value_oid = SNMP_OID_OUTLETS_CURRENT + str(index)
-        super().__init__(coordinator, index)
-
-
-class SnmpOutletVoltageSensorEntity(SnmpOutletSensorEntity, SensorEntity):
-    """Representation of a Eaton ePDU outlet voltage sensor."""
-
-    _attr_device_class = SensorDeviceClass.VOLTAGE
-    _attr_native_unit_of_measurement = ELECTRIC_POTENTIAL_VOLT
-
-    _multiplier = 0.001
-    _name_suffix = "Voltage"
-
-    def __init__(self, coordinator: SnmpCoordinator, index: int) -> None:
-        """Initialize a Eaton ePDU outlet voltage sensor."""
-        self._value_oid = SNMP_OID_OUTLETS_VOLTAGE + str(index)
         super().__init__(coordinator, index)
 
 
