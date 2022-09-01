@@ -31,7 +31,7 @@ from .const import (
     SNMP_OID_OUTLETS_WATTS,
     SNMP_OID_UNITS_INPUT_COUNT,
     SNMP_OID_UNITS_OUTLET_COUNT,
-    SNMP_OID_UNITS_PRODUCT_NAME,
+    SNMP_OID_UNITS_PART_NUMBER,
     SNMP_OID_UNITS_SERIAL_NUMBER,
 )
 
@@ -82,7 +82,7 @@ class SnmpSensorEntity(SnmpEntity, SensorEntity):
     def __init__(self, coordinator: SnmpCoordinator) -> None:
         """Initialize a Eaton ePDU sensor."""
         super().__init__(coordinator)
-        self._attr_name = f"{self.coordinator.data.get(SNMP_OID_UNITS_PRODUCT_NAME)} {self._name_prefix} {self.coordinator.data.get(self._name_oid)} {self._name_suffix}"
+        self._attr_name = f"{self.coordinator.data.get(SNMP_OID_UNITS_PART_NUMBER)} {self._name_prefix} {self.coordinator.data.get(self._name_oid)} {self._name_suffix}"
         self._attr_unique_id = f"{DOMAIN}_{self.coordinator.data.get(SNMP_OID_UNITS_SERIAL_NUMBER)}_{self._value_oid}"
         self._attr_native_value = self.coordinator.data.get(
             self._value_oid, self._default_value
