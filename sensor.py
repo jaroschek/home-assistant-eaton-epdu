@@ -189,7 +189,7 @@ class SnmpOutletCurrentSensorEntity(SnmpOutletSensorEntity, SensorEntity):
 
     _attr_device_class = SensorDeviceClass.CURRENT
     _attr_native_unit_of_measurement = ELECTRIC_CURRENT_AMPERE
-    _attr_entity_registry_enabled_default = False
+    _attr_entity_registry_visible_default = False
 
     _multiplier = 0.001
     _name_suffix = "Current"
