@@ -6,6 +6,8 @@ from homeassistant.const import Platform
 
 DOMAIN = "eaton_epdu"
 
+MANUFACTURER = "Eaton"
+
 PLATFORMS = [
     Platform.SENSOR,
 ]
