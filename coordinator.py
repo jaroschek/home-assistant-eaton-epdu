@@ -20,6 +20,7 @@ from .const import (
     SNMP_OID_OUTLETS_DESIGNATOR,
     SNMP_OID_OUTLETS_WATT_HOURS,
     SNMP_OID_OUTLETS_WATTS,
+    SNMP_OID_UNITS_DEVICE_NAME,
     SNMP_OID_UNITS_FIRMWARE_VERSION,
     SNMP_OID_UNITS_INPUT_COUNT,
     SNMP_OID_UNITS_OUTLET_COUNT,
@@ -55,6 +56,7 @@ class SnmpCoordinator(DataUpdateCoordinator):
                         SNMP_OID_UNITS_PART_NUMBER,
                         SNMP_OID_UNITS_SERIAL_NUMBER,
                         SNMP_OID_UNITS_FIRMWARE_VERSION,
+                        SNMP_OID_UNITS_DEVICE_NAME,
                         SNMP_OID_UNITS_INPUT_COUNT,
                         SNMP_OID_UNITS_OUTLET_COUNT,
                     ]
