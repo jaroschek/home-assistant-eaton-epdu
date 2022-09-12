@@ -7,6 +7,7 @@ from homeassistant.helpers.update_coordinator import CoordinatorEntity
 from .const import (
     DOMAIN,
     MANUFACTURER,
+    SNMP_OID_UNITS_DEVICE_NAME,
     SNMP_OID_UNITS_FIRMWARE_VERSION,
     SNMP_OID_UNITS_PART_NUMBER,
     SNMP_OID_UNITS_PRODUCT_NAME,
@@ -21,12 +22,19 @@ class SnmpEntity(CoordinatorEntity[SnmpCoordinator]):
     @property
     def device_info(self):
         """Return the device_info of the device."""
+        model = self.coordinator.data.get(SNMP_OID_UNITS_PRODUCT_NAME)
+        name = self.coordinator.data.get(SNMP_OID_UNITS_DEVICE_NAME)
+        if name:
+            model = f"{self.coordinator.data.get(SNMP_OID_UNITS_PART_NUMBER)} {model}"
+        else:
+            name = self.coordinator.data.get(SNMP_OID_UNITS_PART_NUMBER)
+
         return DeviceInfo(
             identifiers={
                 (DOMAIN, self.coordinator.data.get(SNMP_OID_UNITS_SERIAL_NUMBER))
             },
             manufacturer=MANUFACTURER,
-            model=self.coordinator.data.get(SNMP_OID_UNITS_PRODUCT_NAME),
-            name=self.coordinator.data.get(SNMP_OID_UNITS_PART_NUMBER),
+            model=model,
+            name=name,
             sw_version=self.coordinator.data.get(SNMP_OID_UNITS_FIRMWARE_VERSION),
         )
