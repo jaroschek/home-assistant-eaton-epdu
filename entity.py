@@ -19,22 +19,34 @@ from .coordinator import SnmpCoordinator
 class SnmpEntity(CoordinatorEntity[SnmpCoordinator]):
     """Base class for myUplink Entities."""
 
+    def __init__(self, coordinator: SnmpCoordinator, unit: str) -> None:
+        """Initialize a Eaton ePDU sensor."""
+        super().__init__(coordinator)
+        self._unit = unit
+
+    def get_data(self, oid: str, default=None):
+        """Wrapper to fetch data from coordinator for current unit"""
+        return self.coordinator.data.get(oid.replace("unit", self._unit), default)
+
     @property
     def device_info(self):
         """Return the device_info of the device."""
-        model = self.coordinator.data.get(SNMP_OID_UNITS_PRODUCT_NAME)
-        name = self.coordinator.data.get(SNMP_OID_UNITS_DEVICE_NAME)
+        model = self.get_data(SNMP_OID_UNITS_PRODUCT_NAME)
+        name = self.get_data(SNMP_OID_UNITS_DEVICE_NAME)
         if name:
-            model = f"{self.coordinator.data.get(SNMP_OID_UNITS_PART_NUMBER)} {model}"
+            model = f"{self.get_data(SNMP_OID_UNITS_PART_NUMBER)} {model}"
         else:
-            name = self.coordinator.data.get(SNMP_OID_UNITS_PART_NUMBER)
+            name = self.get_data(SNMP_OID_UNITS_PART_NUMBER)
 
         return DeviceInfo(
             identifiers={
-                (DOMAIN, self.coordinator.data.get(SNMP_OID_UNITS_SERIAL_NUMBER))
+                (
+                    DOMAIN,
+                    self.get_data(SNMP_OID_UNITS_SERIAL_NUMBER),
+                )
             },
             manufacturer=MANUFACTURER,
             model=model,
             name=name,
-            sw_version=self.coordinator.data.get(SNMP_OID_UNITS_FIRMWARE_VERSION),
+            sw_version=self.get_data(SNMP_OID_UNITS_FIRMWARE_VERSION),
         )
