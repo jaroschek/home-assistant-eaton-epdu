@@ -30,10 +30,8 @@ from .const import (
     SNMP_OID_OUTLETS_WATT_HOURS,
     SNMP_OID_OUTLETS_WATTS,
     SNMP_OID_UNITS,
-    SNMP_OID_UNITS_DEVICE_NAME,
     SNMP_OID_UNITS_INPUT_COUNT,
     SNMP_OID_UNITS_OUTLET_COUNT,
-    SNMP_OID_UNITS_PART_NUMBER,
     SNMP_OID_UNITS_SERIAL_NUMBER,
 )
 
@@ -91,21 +89,33 @@ class SnmpSensorEntity(SnmpEntity, SensorEntity):
 
     _default_value: float = 0.0
 
-    def __init__(self, coordinator: SnmpCoordinator, unit: str) -> None:
+    def __init__(self, coordinator: SnmpCoordinator, unit: str, index: str) -> None:
         """Initialize a Eaton ePDU sensor."""
         super().__init__(coordinator, unit)
-        self._attr_name = f"{self.get_data(SNMP_OID_UNITS_DEVICE_NAME, self.get_data(SNMP_OID_UNITS_PART_NUMBER))} {self._name_prefix} {self.get_data(self._name_oid)} {self._name_suffix}"
-        self._attr_unique_id = (
-            f"{DOMAIN}_{self.get_data(SNMP_OID_UNITS_SERIAL_NUMBER)}_{self._value_oid}"
+        self._name_oid = self._name_oid.replace("unit", unit).replace(
+            "index", str(index)
         )
-        self._attr_native_value = self.get_data(self._value_oid, self._default_value)
+        self._value_oid = self._value_oid.replace("unit", unit).replace(
+            "index", str(index)
+        )
+        device_name = self.device_info["name"]
+        sensor_name = self.coordinator.data.get(self._name_oid)
+        self._attr_name = (
+            f"{device_name} {self._name_prefix} {sensor_name} {self._name_suffix}"
+        )
+        self._attr_unique_id = f"{DOMAIN}_{self.get_unit_data(SNMP_OID_UNITS_SERIAL_NUMBER)}_{self._value_oid}"
+        self._attr_native_value = self.coordinator.data.get(
+            self._value_oid, self._default_value
+        )
         if self._multiplier is not None:
             self._attr_native_value *= self._multiplier
 
     @callback
     def _handle_coordinator_update(self) -> None:
         """Handle updated data from the coordinator."""
-        self._attr_native_value = self.get_data(self._value_oid, self._default_value)
+        self._attr_native_value = self.coordinator.data.get(
+            self._value_oid, self._default_value
+        )
         if self._multiplier is not None:
             self._attr_native_value *= self._multiplier
 
@@ -115,14 +125,8 @@ class SnmpSensorEntity(SnmpEntity, SensorEntity):
 class SnmpInputSensorEntity(SnmpSensorEntity, SensorEntity):
     """Representation of a Eaton ePDU input sensor."""
 
+    _name_oid = SNMP_OID_INPUTS_FEED_NAME
     _name_prefix = "Input"
-
-    def __init__(self, coordinator: SnmpCoordinator, unit: str, index: int) -> None:
-        """Initialize a Eaton ePDU input sensor."""
-        self._name_oid = SNMP_OID_INPUTS_FEED_NAME.replace("unit", unit).replace(
-            "index", str(index)
-        )
-        super().__init__(coordinator, unit)
 
 
 class SnmpInputCurrentSensorEntity(SnmpInputSensorEntity, SensorEntity):
@@ -133,13 +137,7 @@ class SnmpInputCurrentSensorEntity(SnmpInputSensorEntity, SensorEntity):
 
     _multiplier = 0.001
     _name_suffix = "Current"
-
-    def __init__(self, coordinator: SnmpCoordinator, unit: str, index: int) -> None:
-        """Initialize a Eaton ePDU input current sensor."""
-        self._value_oid = SNMP_OID_INPUTS_CURRENT.replace("unit", unit).replace(
-            "index", str(index)
-        )
-        super().__init__(coordinator, unit, index)
+    _value_oid = SNMP_OID_INPUTS_CURRENT
 
 
 class SnmpInputVoltageSensorEntity(SnmpInputSensorEntity, SensorEntity):
@@ -150,13 +148,7 @@ class SnmpInputVoltageSensorEntity(SnmpInputSensorEntity, SensorEntity):
 
     _multiplier = 0.001
     _name_suffix = "Voltage"
-
-    def __init__(self, coordinator: SnmpCoordinator, unit: str, index: int) -> None:
-        """Initialize a Eaton ePDU input voltage sensor."""
-        self._value_oid = SNMP_OID_INPUTS_VOLTAGE.replace("unit", unit).replace(
-            "index", str(index)
-        )
-        super().__init__(coordinator, unit, index)
+    _value_oid = SNMP_OID_INPUTS_VOLTAGE
 
 
 class SnmpInputWattsSensorEntity(SnmpInputSensorEntity, SensorEntity):
@@ -166,13 +158,7 @@ class SnmpInputWattsSensorEntity(SnmpInputSensorEntity, SensorEntity):
     _attr_native_unit_of_measurement = POWER_WATT
 
     _name_suffix = "Watts"
-
-    def __init__(self, coordinator: SnmpCoordinator, unit: str, index: int) -> None:
-        """Initialize a Eaton ePDU input watts sensor."""
-        self._value_oid = SNMP_OID_INPUTS_WATTS.replace("unit", unit).replace(
-            "index", str(index)
-        )
-        super().__init__(coordinator, unit, index)
+    _value_oid = SNMP_OID_INPUTS_WATTS
 
 
 class SnmpInputWattHoursSensorEntity(SnmpInputSensorEntity, SensorEntity):
@@ -184,26 +170,14 @@ class SnmpInputWattHoursSensorEntity(SnmpInputSensorEntity, SensorEntity):
 
     _multiplier = 0.001
     _name_suffix = "Kilowatt Hours"
-
-    def __init__(self, coordinator: SnmpCoordinator, unit: str, index: int) -> None:
-        """Initialize a Eaton ePDU input watt hours sensor."""
-        self._value_oid = SNMP_OID_INPUTS_WATT_HOURS.replace("unit", unit).replace(
-            "index", str(index)
-        )
-        super().__init__(coordinator, unit, index)
+    _value_oid = SNMP_OID_INPUTS_WATT_HOURS
 
 
 class SnmpOutletSensorEntity(SnmpSensorEntity, SensorEntity):
     """Representation of a Eaton ePDU outlet sensor."""
 
+    _name_oid = SNMP_OID_OUTLETS_DESIGNATOR
     _name_prefix = "Outlet"
-
-    def __init__(self, coordinator: SnmpCoordinator, unit: str, index: int) -> None:
-        """Initialize a Eaton ePDU outlet sensor."""
-        self._name_oid = SNMP_OID_OUTLETS_DESIGNATOR.replace("unit", unit).replace(
-            "index", str(index)
-        )
-        super().__init__(coordinator, unit)
 
 
 class SnmpOutletCurrentSensorEntity(SnmpOutletSensorEntity, SensorEntity):
@@ -215,13 +189,7 @@ class SnmpOutletCurrentSensorEntity(SnmpOutletSensorEntity, SensorEntity):
 
     _multiplier = 0.001
     _name_suffix = "Current"
-
-    def __init__(self, coordinator: SnmpCoordinator, unit: str, index: int) -> None:
-        """Initialize a Eaton ePDU outlet current sensor."""
-        self._value_oid = SNMP_OID_OUTLETS_CURRENT.replace("unit", unit).replace(
-            "index", str(index)
-        )
-        super().__init__(coordinator, unit, index)
+    _value_oid = SNMP_OID_OUTLETS_CURRENT
 
 
 class SnmpOutletWattsSensorEntity(SnmpOutletSensorEntity, SensorEntity):
@@ -231,13 +199,7 @@ class SnmpOutletWattsSensorEntity(SnmpOutletSensorEntity, SensorEntity):
     _attr_native_unit_of_measurement = POWER_WATT
 
     _name_suffix = "Watts"
-
-    def __init__(self, coordinator: SnmpCoordinator, unit: str, index: int) -> None:
-        """Initialize a Eaton ePDU outlet watts sensor."""
-        self._value_oid = SNMP_OID_OUTLETS_WATTS.replace("unit", unit).replace(
-            "index", str(index)
-        )
-        super().__init__(coordinator, unit, index)
+    _value_oid = SNMP_OID_OUTLETS_WATTS
 
 
 class SnmpOutletWattHoursSensorEntity(SnmpOutletSensorEntity, SensorEntity):
@@ -249,10 +211,4 @@ class SnmpOutletWattHoursSensorEntity(SnmpOutletSensorEntity, SensorEntity):
 
     _multiplier = 0.001
     _name_suffix = "Kilowatt Hours"
-
-    def __init__(self, coordinator: SnmpCoordinator, unit: int, index: int) -> None:
-        """Initialize a Eaton ePDU outlet watt hours sensor."""
-        self._value_oid = SNMP_OID_OUTLETS_WATT_HOURS.replace("unit", unit).replace(
-            "index", str(index)
-        )
-        super().__init__(coordinator, unit, index)
+    _value_oid = SNMP_OID_OUTLETS_WATT_HOURS
