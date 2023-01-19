@@ -53,27 +53,23 @@ class SnmpCoordinator(DataUpdateCoordinator):
             if self.data is None:
                 self.data = self._api.get([SNMP_OID_UNITS])
 
-            units = self.data.get(SNMP_OID_UNITS)
-            if isinstance(units, str) and units.find(",") != -1:
-                units = units.split(",")
-            else:
-                units = [units]
-
-            for unit in units:
-                self.data.update(
-                    self._api.get(
-                        [
-                            SNMP_OID_UNITS_PRODUCT_NAME.replace("unit", unit),
-                            SNMP_OID_UNITS_PART_NUMBER.replace("unit", unit),
-                            SNMP_OID_UNITS_SERIAL_NUMBER.replace("unit", unit),
-                            SNMP_OID_UNITS_FIRMWARE_VERSION.replace("unit", unit),
-                            SNMP_OID_UNITS_DEVICE_NAME.replace("unit", unit),
-                            SNMP_OID_UNITS_INPUT_COUNT.replace("unit", unit),
-                            SNMP_OID_UNITS_OUTLET_COUNT.replace("unit", unit),
-                        ]
+                for unit in self.get_units():
+                    self.data.update(
+                        self._api.get(
+                            [
+                                SNMP_OID_UNITS_PRODUCT_NAME.replace("unit", unit),
+                                SNMP_OID_UNITS_PART_NUMBER.replace("unit", unit),
+                                SNMP_OID_UNITS_SERIAL_NUMBER.replace("unit", unit),
+                                SNMP_OID_UNITS_FIRMWARE_VERSION.replace("unit", unit),
+                                SNMP_OID_UNITS_DEVICE_NAME.replace("unit", unit),
+                                SNMP_OID_UNITS_INPUT_COUNT.replace("unit", unit),
+                                SNMP_OID_UNITS_OUTLET_COUNT.replace("unit", unit),
+                            ]
+                        )
                     )
-                )
-                
+
+            for unit in self.get_units():
+
                 input_count = self.data.get(
                     SNMP_OID_UNITS_INPUT_COUNT.replace("unit", unit), 0
                 )
@@ -127,6 +123,16 @@ class SnmpCoordinator(DataUpdateCoordinator):
 
         except RuntimeError as err:
             raise UpdateFailed(err) from err
+
+    def get_units(self) -> dict:
+        """Get units as dict."""
+        units = self.data.get(SNMP_OID_UNITS)
+        if isinstance(units, str) and units.find(",") != -1:
+            units = units.split(",")
+        else:
+            units = [str(units)]
+
+        return units
 
     async def _async_update_data(self) -> dict:
         """Fetch the latest data from the source."""

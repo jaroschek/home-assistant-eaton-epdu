@@ -10,10 +10,10 @@ from homeassistant.components.sensor import (
 )
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import (
-    ELECTRIC_CURRENT_AMPERE,
-    ELECTRIC_POTENTIAL_VOLT,
-    POWER_WATT,
-    ENERGY_KILO_WATT_HOUR,
+    UnitOfElectricCurrent,
+    UnitOfElectricPotential,
+    UnitOfPower,
+    UnitOfEnergy,
 )
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
@@ -29,7 +29,6 @@ from .const import (
     SNMP_OID_OUTLETS_DESIGNATOR,
     SNMP_OID_OUTLETS_WATT_HOURS,
     SNMP_OID_OUTLETS_WATTS,
-    SNMP_OID_UNITS,
     SNMP_OID_UNITS_INPUT_COUNT,
     SNMP_OID_UNITS_OUTLET_COUNT,
     SNMP_OID_UNITS_SERIAL_NUMBER,
@@ -50,7 +49,7 @@ async def async_setup_entry(
     coordinator = hass.data[DOMAIN][entry.entry_id]
     entities: list[SensorEntity] = []
 
-    for unit in coordinator.data.get(SNMP_OID_UNITS).split(","):
+    for unit in coordinator.get_units():
 
         for index in range(
             1,
@@ -133,7 +132,7 @@ class SnmpInputCurrentSensorEntity(SnmpInputSensorEntity, SensorEntity):
     """Representation of a Eaton ePDU input current sensor."""
 
     _attr_device_class = SensorDeviceClass.CURRENT
-    _attr_native_unit_of_measurement = ELECTRIC_CURRENT_AMPERE
+    _attr_native_unit_of_measurement = UnitOfElectricCurrent.AMPERE
 
     _multiplier = 0.001
     _name_suffix = "Current"
@@ -144,7 +143,7 @@ class SnmpInputVoltageSensorEntity(SnmpInputSensorEntity, SensorEntity):
     """Representation of a Eaton ePDU input voltage sensor."""
 
     _attr_device_class = SensorDeviceClass.VOLTAGE
-    _attr_native_unit_of_measurement = ELECTRIC_POTENTIAL_VOLT
+    _attr_native_unit_of_measurement = UnitOfElectricPotential.VOLT
 
     _multiplier = 0.001
     _name_suffix = "Voltage"
@@ -155,7 +154,7 @@ class SnmpInputWattsSensorEntity(SnmpInputSensorEntity, SensorEntity):
     """Representation of a Eaton ePDU input watts sensor."""
 
     _attr_device_class = SensorDeviceClass.POWER
-    _attr_native_unit_of_measurement = POWER_WATT
+    _attr_native_unit_of_measurement = UnitOfPower.WATT
 
     _name_suffix = "Watts"
     _value_oid = SNMP_OID_INPUTS_WATTS
@@ -165,7 +164,7 @@ class SnmpInputWattHoursSensorEntity(SnmpInputSensorEntity, SensorEntity):
     """Representation of a Eaton ePDU input watt hours sensor."""
 
     _attr_device_class = SensorDeviceClass.ENERGY
-    _attr_native_unit_of_measurement = ENERGY_KILO_WATT_HOUR
+    _attr_native_unit_of_measurement = UnitOfEnergy.KILO_WATT_HOUR
     _attr_state_class = SensorStateClass.TOTAL_INCREASING
 
     _multiplier = 0.001
@@ -184,7 +183,7 @@ class SnmpOutletCurrentSensorEntity(SnmpOutletSensorEntity, SensorEntity):
     """Representation of a Eaton ePDU outlet current sensor."""
 
     _attr_device_class = SensorDeviceClass.CURRENT
-    _attr_native_unit_of_measurement = ELECTRIC_CURRENT_AMPERE
+    _attr_native_unit_of_measurement = UnitOfElectricCurrent.AMPERE
     _attr_entity_registry_visible_default = False
 
     _multiplier = 0.001
@@ -196,7 +195,7 @@ class SnmpOutletWattsSensorEntity(SnmpOutletSensorEntity, SensorEntity):
     """Representation of a Eaton ePDU outlet watts sensor."""
 
     _attr_device_class = SensorDeviceClass.POWER
-    _attr_native_unit_of_measurement = POWER_WATT
+    _attr_native_unit_of_measurement = UnitOfPower.WATT
 
     _name_suffix = "Watts"
     _value_oid = SNMP_OID_OUTLETS_WATTS
@@ -206,7 +205,7 @@ class SnmpOutletWattHoursSensorEntity(SnmpOutletSensorEntity, SensorEntity):
     """Representation of a Eaton ePDU outlet watt hours sensor."""
 
     _attr_device_class = SensorDeviceClass.ENERGY
-    _attr_native_unit_of_measurement = ENERGY_KILO_WATT_HOUR
+    _attr_native_unit_of_measurement = UnitOfEnergy.KILO_WATT_HOUR
     _attr_state_class = SensorStateClass.TOTAL_INCREASING
 
     _multiplier = 0.001
