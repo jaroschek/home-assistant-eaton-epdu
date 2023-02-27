@@ -1,3 +1,4 @@
 {
-  "name": "Eaton ePDU"
+  "name": "Eaton ePDU",
+  "render_readme": true
 }
