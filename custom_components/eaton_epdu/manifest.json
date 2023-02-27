@@ -1,17 +1,15 @@
 {
   "domain": "eaton_epdu",
   "name": "Eaton ePDU",
+  "codeowners": ["@jaroschek"],
   "config_flow": true,
+  "dependencies": [],
   "documentation": "https://github.com/jaroschek/home-assistant-snmp-epdu",
+  "homekit": {},
+  "iot_class": "local_polling",
   "issue_tracker": "https://github.com/jaroschek/home-assistant-snmp-epdu/issues",
   "requirements": ["pysnmplib==5.0.20"],
   "ssdp": [],
-  "zeroconf": [],
-  "homekit": {},
-  "dependencies": [],
-  "codeowners": [
-    "@jaroschek"
-  ],
-  "iot_class": "local_polling",
-  "version": "23.01.19"
+  "version": "23.01.19",
+  "zeroconf": []
 }
