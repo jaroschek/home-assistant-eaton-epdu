@@ -49,26 +49,25 @@ class SnmpCoordinator(DataUpdateCoordinator):
     def _update_data(self) -> dict:
         """Fetch the latest data from the source."""
         try:
-
             if self.data is None:
                 self.data = self._api.get([SNMP_OID_UNITS])
-
-                for unit in self.get_units():
-                    self.data.update(
-                        self._api.get(
-                            [
-                                SNMP_OID_UNITS_PRODUCT_NAME.replace("unit", unit),
-                                SNMP_OID_UNITS_PART_NUMBER.replace("unit", unit),
-                                SNMP_OID_UNITS_SERIAL_NUMBER.replace("unit", unit),
-                                SNMP_OID_UNITS_FIRMWARE_VERSION.replace("unit", unit),
-                                SNMP_OID_UNITS_DEVICE_NAME.replace("unit", unit),
-                                SNMP_OID_UNITS_INPUT_COUNT.replace("unit", unit),
-                                SNMP_OID_UNITS_OUTLET_COUNT.replace("unit", unit),
-                            ]
-                        )
-                    )
+            else:
+                self.data.update(self._api.get([SNMP_OID_UNITS]))
 
             for unit in self.get_units():
+                self.data.update(
+                    self._api.get(
+                        [
+                            SNMP_OID_UNITS_PRODUCT_NAME.replace("unit", unit),
+                            SNMP_OID_UNITS_PART_NUMBER.replace("unit", unit),
+                            SNMP_OID_UNITS_SERIAL_NUMBER.replace("unit", unit),
+                            SNMP_OID_UNITS_FIRMWARE_VERSION.replace("unit", unit),
+                            SNMP_OID_UNITS_DEVICE_NAME.replace("unit", unit),
+                            SNMP_OID_UNITS_INPUT_COUNT.replace("unit", unit),
+                            SNMP_OID_UNITS_OUTLET_COUNT.replace("unit", unit),
+                        ]
+                    )
+                )
 
                 input_count = self.data.get(
                     SNMP_OID_UNITS_INPUT_COUNT.replace("unit", unit), 0
