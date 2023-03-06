@@ -1,4 +1,4 @@
-# home-assistant-eaton-epdu
+# Eaton ePDU integration for Home Assistant
 Custom Home Assistant integration for Eaton ePDU devices and sensors through SNMP.
 
 ## Install
