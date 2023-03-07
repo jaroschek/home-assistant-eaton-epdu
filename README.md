@@ -1,4 +1,7 @@
 # Eaton ePDU integration for Home Assistant
+
+[![Release Builds](https://github.com/jaroschek/home-assistant-eaton-epdu/actions/workflows/hassfest.yaml/badge.svg?branch=main&event=push)](https://github.com/jaroschek/home-assistant-eaton-epdu/actions/workflows/hassfest.yaml) [![Release Builds](https://github.com/jaroschek/home-assistant-eaton-epdu/actions/workflows/hacs.yaml/badge.svg?branch=main&event=push)](https://github.com/jaroschek/home-assistant-eaton-epdu/actions/workflows/hacs.yaml)
+
 Custom Home Assistant integration for Eaton ePDU devices and sensors through SNMP.
 
 ## Install
