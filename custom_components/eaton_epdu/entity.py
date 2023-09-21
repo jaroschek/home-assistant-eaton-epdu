@@ -17,10 +17,10 @@ from .coordinator import SnmpCoordinator
 
 
 class SnmpEntity(CoordinatorEntity[SnmpCoordinator]):
-    """Base class for myUplink Entities."""
+    """Base class for Eaton ePDU entities."""
 
     def __init__(self, coordinator: SnmpCoordinator, unit: str) -> None:
-        """Initialize a Eaton ePDU sensor."""
+        """Initialize a Eaton ePDU entity."""
         super().__init__(coordinator)
         self._unit = unit
 

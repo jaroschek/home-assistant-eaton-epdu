@@ -10,7 +10,7 @@ from .coordinator import SnmpCoordinator
 
 
 async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
-    """Set up myUplink."""
+    """Set up Eaton ePDU."""
     hass.data[DOMAIN] = {}
 
     return True
