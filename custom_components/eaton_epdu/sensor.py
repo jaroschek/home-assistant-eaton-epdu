@@ -12,8 +12,8 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import (
     UnitOfElectricCurrent,
     UnitOfElectricPotential,
-    UnitOfPower,
     UnitOfEnergy,
+    UnitOfPower,
 )
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
@@ -33,7 +33,6 @@ from .const import (
     SNMP_OID_UNITS_OUTLET_COUNT,
     SNMP_OID_UNITS_SERIAL_NUMBER,
 )
-
 from .coordinator import SnmpCoordinator
 from .entity import SnmpEntity
 
@@ -50,7 +49,6 @@ async def async_setup_entry(
     entities: list[SensorEntity] = []
 
     for unit in coordinator.get_units():
-
         for index in range(
             1,
             coordinator.data.get(SNMP_OID_UNITS_INPUT_COUNT.replace("unit", unit), 0)

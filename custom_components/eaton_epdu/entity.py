@@ -1,4 +1,4 @@
-"""Definition of base Eaton ePDU Entity"""
+"""Definition of base Eaton ePDU Entity."""
 from __future__ import annotations
 
 from homeassistant.helpers.entity import DeviceInfo
@@ -25,7 +25,7 @@ class SnmpEntity(CoordinatorEntity[SnmpCoordinator]):
         self._unit = unit
 
     def get_unit_data(self, oid: str, default=None):
-        """Wrapper to fetch data from coordinator for current unit"""
+        """Fetch data from coordinator for current unit."""
         return self.coordinator.data.get(oid.replace("unit", self._unit), default)
 
     @property
