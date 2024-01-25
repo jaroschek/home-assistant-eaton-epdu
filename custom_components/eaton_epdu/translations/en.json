@@ -1,60 +1,61 @@
 {
-    "config": {
-        "abort": {
-            "already_configured": "Device is already configured"
-        },
-        "error": {
-            "cannot_connect": "Failed to connect",
-            "invalid_auth": "Invalid authentication",
-            "unknown": "Unexpected error"
-        },
-        "step": {
-            "host": {
-                "data": {
-                    "host": "Host",
-                    "port": "Port",
-                    "version": "SNMP Version"
-                }
-            },
-            "v1": {
-                "data": {
-                    "community": "Community"
-                }
-            },
-            "v3": {
-                "data": {
-                    "username": "Username",
-                    "auth_key": "Auth Key",
-                    "auth_protocol": "Auth Protocol",
-                    "priv_key": "Priv Key",
-                    "priv_protocol": "Priv Protocol"
-                }
-            }
-        }
+  "config": {
+    "abort": {
+      "already_configured": "Device is already configured"
     },
-    "options": {
-        "step": {
-            "host": {
-                "data": {
-                    "host": "Host",
-                    "port": "Port",
-                    "version": "SNMP Version"
-                }
-            },
-            "v1": {
-                "data": {
-                    "community": "Community"
-                }
-            },
-            "v3": {
-                "data": {
-                    "username": "Username",
-                    "auth_key": "Auth Key",
-                    "auth_protocol": "Auth Protocol",
-                    "priv_key": "Priv Key",
-                    "priv_protocol": "Priv Protocol"
-                }
-            }
+    "error": {
+      "cannot_connect": "Failed to connect",
+      "invalid_auth": "Invalid authentication",
+      "unknown": "Unexpected error"
+    },
+    "step": {
+      "host": {
+        "data": {
+          "name": "Name",
+          "host": "Host",
+          "port": "Port",
+          "version": "SNMP Version"
         }
+      },
+      "v1": {
+        "data": {
+          "community": "Community"
+        }
+      },
+      "v3": {
+        "data": {
+          "username": "Username",
+          "auth_key": "Auth Key",
+          "auth_protocol": "Auth Protocol",
+          "priv_key": "Priv Key",
+          "priv_protocol": "Priv Protocol"
+        }
+      }
     }
+  },
+  "options": {
+    "step": {
+      "host": {
+        "data": {
+          "host": "Host",
+          "port": "Port",
+          "version": "SNMP Version"
+        }
+      },
+      "v1": {
+        "data": {
+          "community": "Community"
+        }
+      },
+      "v3": {
+        "data": {
+          "username": "Username",
+          "auth_key": "Auth Key",
+          "auth_protocol": "Auth Protocol",
+          "priv_key": "Priv Key",
+          "priv_protocol": "Priv Protocol"
+        }
+      }
+    }
+  }
 }
