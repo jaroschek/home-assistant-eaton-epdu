@@ -10,6 +10,6 @@
   "issue_tracker": "https://github.com/jaroschek/home-assistant-eaton-epdu/issues",
   "requirements": ["pysnmp-lextudio==5.0.34"],
   "ssdp": [],
-  "version": "1.0.1",
+  "version": "1.0.2",
   "zeroconf": []
 }
