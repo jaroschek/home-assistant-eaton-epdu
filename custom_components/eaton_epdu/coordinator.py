@@ -46,17 +46,17 @@ class SnmpCoordinator(DataUpdateCoordinator):
         )
         self._api = SnmpApi(entry)
 
-    def _update_data(self) -> dict:
+    async def _update_data(self) -> dict:
         """Fetch the latest data from the source."""
         try:
             if self.data is None:
-                self.data = self._api.get([SNMP_OID_UNITS])
+                self.data = await self._api.get([SNMP_OID_UNITS])
             else:
-                self.data.update(self._api.get([SNMP_OID_UNITS]))
+                self.data.update(await self._api.get([SNMP_OID_UNITS]))
 
             for unit in self.get_units():
                 self.data.update(
-                    self._api.get(
+                    await self._api.get(
                         [
                             SNMP_OID_UNITS_PRODUCT_NAME.replace("unit", unit),
                             SNMP_OID_UNITS_PART_NUMBER.replace("unit", unit),
@@ -73,7 +73,7 @@ class SnmpCoordinator(DataUpdateCoordinator):
                     SNMP_OID_UNITS_INPUT_COUNT.replace("unit", unit), 0
                 )
                 if input_count > 0:
-                    for result in self._api.get_bulk(
+                    for result in await self._api.get_bulk(
                         [
                             SNMP_OID_INPUTS_FEED_NAME.replace("unit", unit).replace(
                                 "index", ""
@@ -99,7 +99,7 @@ class SnmpCoordinator(DataUpdateCoordinator):
                     SNMP_OID_UNITS_OUTLET_COUNT.replace("unit", unit), 0
                 )
                 if outlet_count > 0:
-                    for result in self._api.get_bulk(
+                    for result in await self._api.get_bulk(
                         [
                             SNMP_OID_OUTLETS_DESIGNATOR.replace("unit", unit).replace(
                                 "index", ""
@@ -135,4 +135,4 @@ class SnmpCoordinator(DataUpdateCoordinator):
 
     async def _async_update_data(self) -> dict:
         """Fetch the latest data from the source."""
-        return await self.hass.async_add_executor_job(self._update_data)
+        return await self._update_data()
