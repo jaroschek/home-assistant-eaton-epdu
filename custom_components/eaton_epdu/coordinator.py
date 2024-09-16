@@ -1,8 +1,11 @@
 """Eaton ePDU coordinator."""
+
 from __future__ import annotations
 
 from datetime import timedelta
 import logging
+
+from pysnmp.hlapi.asyncio import SnmpEngine
 
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
@@ -36,7 +39,9 @@ _LOGGER = logging.getLogger(__name__)
 class SnmpCoordinator(DataUpdateCoordinator):
     """Data update coordinator."""
 
-    def __init__(self, hass: HomeAssistant, entry: ConfigEntry) -> None:
+    def __init__(
+        self, hass: HomeAssistant, entry: ConfigEntry, snmpEngine: SnmpEngine
+    ) -> None:
         """Initialize the coordinator."""
         super().__init__(
             hass,
@@ -44,7 +49,7 @@ class SnmpCoordinator(DataUpdateCoordinator):
             name=DOMAIN,
             update_interval=timedelta(seconds=60),
         )
-        self._api = SnmpApi(entry)
+        self._api = SnmpApi(entry, snmpEngine)
 
     async def _update_data(self) -> dict:
         """Fetch the latest data from the source."""
