@@ -1,10 +1,15 @@
 """API for Eaton ePDU."""
+
 from __future__ import annotations
+
 import logging
 
 import pysnmp.hlapi.asyncio as hlapi
+from pysnmp.hlapi.asyncio import SnmpEngine
 
+from homeassistant.components.snmp import async_get_snmp_engine
 from homeassistant.config_entries import ConfigEntry
+from homeassistant.core import HomeAssistant
 
 from .const import (
     ATTR_AUTH_KEY,
@@ -45,11 +50,14 @@ PRIV_MAP = {
 
 _LOGGER = logging.getLogger(__name__)
 
+
 class SnmpApi:
     """Provide an api for Eaton ePDU."""
 
-    def __init__(self, entry: ConfigEntry) -> None:
+    def __init__(self, entry: ConfigEntry, snmpEngine: SnmpEngine) -> None:
         """Init the SnmpApi."""
+        self._snmpEngine = snmpEngine
+
         self._target = hlapi.UdpTransportTarget(
             (
                 entry.data.get(ATTR_HOST),
@@ -85,7 +93,7 @@ class SnmpApi:
         _LOGGER.debug("Get OID(s) %s", oids)
         result = []
         error_indication, error_status, error_index, var_binds = await hlapi.getCmd(
-            hlapi.SnmpEngine(),
+            self._snmpEngine,
             self._credentials,
             self._target,
             hlapi.ContextData(),
@@ -99,9 +107,7 @@ class SnmpApi:
             result.append(items)
         else:
             raise RuntimeError(
-                "Got SNMP error: {} {} {}".format(
-                    error_indication, error_status, error_index
-                )
+                "Got SNMP error: {error_indication} {error_status} {error_index}"
             )
 
         return result[0]
@@ -117,8 +123,13 @@ class SnmpApi:
         result = []
         var_binds = __class__.construct_object_types(oids)
         for _i in range(count):
-            error_indication, error_status, error_index, var_bind_table = await hlapi.bulkCmd(
-                hlapi.SnmpEngine(),
+            (
+                error_indication,
+                error_status,
+                error_index,
+                var_bind_table,
+            ) = await hlapi.bulkCmd(
+                self._snmpEngine,
                 self._credentials,
                 self._target,
                 hlapi.ContextData(),
@@ -135,9 +146,7 @@ class SnmpApi:
                 result.append(items)
             else:
                 raise RuntimeError(
-                    "Got SNMP error: {} {} {}".format(
-                        error_indication, error_status, error_index
-                    )
+                    f"Got SNMP error: {error_indication} {error_status} {error_index}"
                 )
 
             var_binds = var_bind_table[-1]
@@ -151,7 +160,9 @@ class SnmpApi:
         start_from=1,
     ) -> list:
         """Get table data for given OIDs with determined rown count."""
-        return await self.get_bulk(oids, await self.get([count_oid])[count_oid], start_from)
+        return await self.get_bulk(
+            oids, await self.get([count_oid])[count_oid], start_from
+        )
 
     @staticmethod
     def cast(value):
