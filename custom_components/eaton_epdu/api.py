@@ -4,12 +4,11 @@ from __future__ import annotations
 
 import logging
 
+from pysnmp.error import PySnmpError
 import pysnmp.hlapi.asyncio as hlapi
 from pysnmp.hlapi.asyncio import SnmpEngine
 
-from homeassistant.components.snmp import async_get_snmp_engine
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.core import HomeAssistant
 
 from .const import (
     ATTR_AUTH_KEY,
@@ -58,13 +57,26 @@ class SnmpApi:
         """Init the SnmpApi."""
         self._snmpEngine = snmpEngine
 
-        self._target = hlapi.UdpTransportTarget(
-            (
-                entry.data.get(ATTR_HOST),
-                entry.data.get(ATTR_PORT, SNMP_PORT_DEFAULT),
-            ),
-            10,
-        )
+        try:
+            self._target = hlapi.UdpTransportTarget(
+                (
+                    entry.data.get(ATTR_HOST),
+                    entry.data.get(ATTR_PORT, SNMP_PORT_DEFAULT),
+                ),
+                10,
+            )
+        except PySnmpError:
+            try:
+                self._target = hlapi.Udp6TransportTarget(
+                    (
+                        entry.data.get(ATTR_HOST),
+                        entry.data.get(ATTR_PORT, SNMP_PORT_DEFAULT),
+                    ),
+                    10,
+                )
+            except PySnmpError as err:
+                _LOGGER.error("Invalid SNMP host: %s", err)
+                return
 
         self._version = entry.data.get(ATTR_VERSION)
         if self._version == SnmpVersion.V1:
