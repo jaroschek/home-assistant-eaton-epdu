@@ -1,6 +1,7 @@
 {
   "domain": "eaton_epdu",
   "name": "Eaton ePDU",
+  "after_dependencies": ["snmp"],
   "codeowners": ["@jaroschek"],
   "config_flow": true,
   "dependencies": [],
