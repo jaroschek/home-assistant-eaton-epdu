@@ -1,4 +1,5 @@
 """Support for Eaton ePDU sensors."""
+
 from __future__ import annotations
 
 from datetime import timedelta
@@ -31,7 +32,6 @@ from .const import (
     SNMP_OID_OUTLETS_WATTS,
     SNMP_OID_UNITS_INPUT_COUNT,
     SNMP_OID_UNITS_OUTLET_COUNT,
-    SNMP_OID_UNITS_SERIAL_NUMBER,
 )
 from .coordinator import SnmpCoordinator
 from .entity import SnmpEntity
@@ -100,7 +100,7 @@ class SnmpSensorEntity(SnmpEntity, SensorEntity):
         self._attr_name = (
             f"{device_name} {self._name_prefix} {sensor_name} {self._name_suffix}"
         )
-        self._attr_unique_id = f"{DOMAIN}_{self.get_unit_data(SNMP_OID_UNITS_SERIAL_NUMBER)}_{self._value_oid}"
+        self._attr_unique_id = f"{DOMAIN}_{self.identifier}_{self._value_oid}"
         self._attr_native_value = self.coordinator.data.get(
             self._value_oid, self._default_value
         )
