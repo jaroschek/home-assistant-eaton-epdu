@@ -58,5 +58,6 @@ class SnmpEntity(CoordinatorEntity[SnmpCoordinator]):
             manufacturer=MANUFACTURER,
             model=model,
             name=name,
+            serial_number=self.get_unit_data(SNMP_OID_UNITS_SERIAL_NUMBER),
             sw_version=self.get_unit_data(SNMP_OID_UNITS_FIRMWARE_VERSION),
         )
