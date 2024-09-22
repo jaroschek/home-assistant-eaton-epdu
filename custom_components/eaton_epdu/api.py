@@ -4,12 +4,11 @@ from __future__ import annotations
 
 import logging
 
+from pysnmp.error import PySnmpError
 import pysnmp.hlapi.asyncio as hlapi
 from pysnmp.hlapi.asyncio import SnmpEngine
 
-from homeassistant.components.snmp import async_get_snmp_engine
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.core import HomeAssistant
 
 from .const import (
     ATTR_AUTH_KEY,
@@ -58,13 +57,26 @@ class SnmpApi:
         """Init the SnmpApi."""
         self._snmpEngine = snmpEngine
 
-        self._target = hlapi.UdpTransportTarget(
-            (
-                entry.data.get(ATTR_HOST),
-                entry.data.get(ATTR_PORT, SNMP_PORT_DEFAULT),
-            ),
-            10,
-        )
+        try:
+            self._target = hlapi.UdpTransportTarget(
+                (
+                    entry.data.get(ATTR_HOST),
+                    entry.data.get(ATTR_PORT, SNMP_PORT_DEFAULT),
+                ),
+                10,
+            )
+        except PySnmpError:
+            try:
+                self._target = hlapi.Udp6TransportTarget(
+                    (
+                        entry.data.get(ATTR_HOST),
+                        entry.data.get(ATTR_PORT, SNMP_PORT_DEFAULT),
+                    ),
+                    10,
+                )
+            except PySnmpError as err:
+                _LOGGER.error("Invalid SNMP host: %s", err)
+                return
 
         self._version = entry.data.get(ATTR_VERSION)
         if self._version == SnmpVersion.V1:
@@ -90,27 +102,33 @@ class SnmpApi:
 
     async def get(self, oids) -> dict:
         """Get data for given OIDs in a single call."""
-        _LOGGER.debug("Get OID(s) %s", oids)
-        result = []
-        error_indication, error_status, error_index, var_binds = await hlapi.getCmd(
-            self._snmpEngine,
-            self._credentials,
-            self._target,
-            hlapi.ContextData(),
-            *__class__.construct_object_types(oids),
-        )
+        while len(oids):
+            _LOGGER.debug("Get OID(s) %s", oids)
 
-        if not error_indication and not error_status:
+            error_indication, error_status, error_index, var_binds = await hlapi.getCmd(
+                self._snmpEngine,
+                self._credentials,
+                self._target,
+                hlapi.ContextData(),
+                *__class__.construct_object_types(oids),
+            )
+
+            if error_index:
+                _LOGGER.debug("Remove error index %d", error_index - 1)
+                oids.pop(error_index - 1)
+                continue
+
+            if error_indication or error_status:
+                raise RuntimeError(
+                    f"Got SNMP error: {error_indication} {error_status} {error_index}"
+                )
+
             items = {}
             for var_bind in var_binds:
                 items[str(var_bind[0])] = __class__.cast(var_bind[1])
-            result.append(items)
-        else:
-            raise RuntimeError(
-                "Got SNMP error: {error_indication} {error_status} {error_index}"
-            )
+            return items
 
-        return result[0]
+        return []
 
     async def get_bulk(
         self,

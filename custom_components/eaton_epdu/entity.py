@@ -1,4 +1,5 @@
 """Definition of base Eaton ePDU Entity."""
+
 from __future__ import annotations
 
 from homeassistant.helpers.entity import DeviceInfo
@@ -29,6 +30,20 @@ class SnmpEntity(CoordinatorEntity[SnmpCoordinator]):
         return self.coordinator.data.get(oid.replace("unit", self._unit), default)
 
     @property
+    def identifier(self):
+        """Return the device identifier."""
+        return self.get_unit_data(
+            SNMP_OID_UNITS_SERIAL_NUMBER,
+            self.get_unit_data(
+                SNMP_OID_UNITS_DEVICE_NAME,
+                self.get_unit_data(
+                    SNMP_OID_UNITS_PART_NUMBER,
+                    self.get_unit_data(SNMP_OID_UNITS_PRODUCT_NAME),
+                ),
+            ),
+        )
+
+    @property
     def device_info(self):
         """Return the device_info of the device."""
         model = self.get_unit_data(SNMP_OID_UNITS_PRODUCT_NAME)
@@ -39,14 +54,10 @@ class SnmpEntity(CoordinatorEntity[SnmpCoordinator]):
             name = self.get_unit_data(SNMP_OID_UNITS_PART_NUMBER)
 
         return DeviceInfo(
-            identifiers={
-                (
-                    DOMAIN,
-                    self.get_unit_data(SNMP_OID_UNITS_SERIAL_NUMBER),
-                )
-            },
+            identifiers={(DOMAIN, self.identifier)},
             manufacturer=MANUFACTURER,
             model=model,
             name=name,
+            serial_number=self.get_unit_data(SNMP_OID_UNITS_SERIAL_NUMBER),
             sw_version=self.get_unit_data(SNMP_OID_UNITS_FIRMWARE_VERSION),
         )
