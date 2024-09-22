@@ -11,6 +11,6 @@
   "issue_tracker": "https://github.com/jaroschek/home-assistant-eaton-epdu/issues",
   "requirements": ["pysnmp==6.2.5"],
   "ssdp": [],
-  "version": "1.1.1-rc1",
+  "version": "1.1.1",
   "zeroconf": []
 }
