@@ -45,7 +45,7 @@ async def async_setup_entry(
 ) -> None:
     """Set up the sensors."""
 
-    coordinator = hass.data[DOMAIN][entry.entry_id]
+    coordinator = entry.runtime_data
     entities: list[SensorEntity] = []
 
     for unit in coordinator.get_units():
