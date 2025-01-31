@@ -36,7 +36,7 @@ from .const import (
 from .coordinator import SnmpCoordinator
 from .entity import SnmpEntity
 
-PARALLEL_UPDATES = 1
+PARALLEL_UPDATES = 0
 SCAN_INTERVAL = timedelta(seconds=60)
 
 
@@ -45,7 +45,7 @@ async def async_setup_entry(
 ) -> None:
     """Set up the sensors."""
 
-    coordinator = hass.data[DOMAIN][entry.entry_id]
+    coordinator = entry.runtime_data
     entities: list[SensorEntity] = []
 
     for unit in coordinator.get_units():
