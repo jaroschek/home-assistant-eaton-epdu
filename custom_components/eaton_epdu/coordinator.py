@@ -131,6 +131,10 @@ class SnmpCoordinator(DataUpdateCoordinator):
     def get_units(self) -> dict:
         """Get units as dict."""
         units = self.data.get(SNMP_OID_UNITS)
+
+        if units is None:
+            return []
+
         if isinstance(units, str) and units.find(",") != -1:
             units = units.split(",")
         else:
