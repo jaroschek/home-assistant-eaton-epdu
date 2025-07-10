@@ -1,8 +1,12 @@
 {
   "domain": "eaton_epdu",
   "name": "Eaton ePDU",
-  "after_dependencies": ["snmp"],
-  "codeowners": ["@jaroschek"],
+  "after_dependencies": [
+    "snmp"
+  ],
+  "codeowners": [
+    "@jaroschek"
+  ],
   "config_flow": true,
   "dependencies": [],
   "documentation": "https://github.com/jaroschek/home-assistant-eaton-epdu",
@@ -11,6 +15,6 @@
   "issue_tracker": "https://github.com/jaroschek/home-assistant-eaton-epdu/issues",
   "requirements": [],
   "ssdp": [],
-  "version": "1.2.1",
+  "version": "1.2.2",
   "zeroconf": []
 }
