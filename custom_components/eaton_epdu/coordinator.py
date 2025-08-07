@@ -31,6 +31,8 @@ from .const import (
     SNMP_OID_UNITS_PART_NUMBER,
     SNMP_OID_UNITS_PRODUCT_NAME,
     SNMP_OID_UNITS_SERIAL_NUMBER,
+    ATTR_UPDATE_INTERVAL,
+    UPDATE_INTERVAL_DEFAULT
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -43,11 +45,12 @@ class SnmpCoordinator(DataUpdateCoordinator):
         self, hass: HomeAssistant, entry: ConfigEntry, snmpEngine: SnmpEngine
     ) -> None:
         """Initialize the coordinator."""
+
         super().__init__(
             hass,
             _LOGGER,
             name=DOMAIN,
-            update_interval=timedelta(seconds=60),
+            update_interval=timedelta(seconds=entry.data.get(ATTR_UPDATE_INTERVAL, UPDATE_INTERVAL_DEFAULT)),
         )
         self._api = SnmpApi(entry, snmpEngine)
 

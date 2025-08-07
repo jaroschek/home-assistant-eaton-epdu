@@ -23,7 +23,9 @@ ATTR_AUTH_PROTOCOL = "auth_protocol"
 ATTR_AUTH_KEY = "auth_key"
 ATTR_PRIV_PROTOCOL = "priv_protocol"
 ATTR_PRIV_KEY = "priv_key"
+ATTR_UPDATE_INTERVAL = "update_interval"
 
+UPDATE_INTERVAL_DEFAULT = 60
 
 class SnmpVersion(StrEnum):
     """Enum with snmp versions."""

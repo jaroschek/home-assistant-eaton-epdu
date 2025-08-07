@@ -14,6 +14,7 @@
           "name": "Name",
           "host": "Host",
           "port": "Port",
+          "update_interval": "Update Interval",
           "version": "SNMP Version"
         }
       },
@@ -39,6 +40,7 @@
         "data": {
           "host": "Host",
           "port": "Port",
+          "update_interval": "Update Interval",
           "version": "SNMP Version"
         }
       },
