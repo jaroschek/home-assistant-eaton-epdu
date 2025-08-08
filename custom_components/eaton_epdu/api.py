@@ -10,6 +10,8 @@ from pysnmp.hlapi.asyncio import SnmpEngine
 
 from homeassistant.config_entries import ConfigEntry
 
+from pysnmp.proto.rfc1902 import OctetString, Integer, ObjectSyntax
+
 from .const import (
     ATTR_AUTH_KEY,
     ATTR_AUTH_PROTOCOL,
@@ -129,6 +131,43 @@ class SnmpApi:
             return items
 
         return {}
+    
+    async def set(self, oid: str, value, value_type: str = "OctetString") -> bool:
+        """
+        Set SNMP value for the given OID.
+
+        Args:
+            oid: OID string to set.
+            value: The value to set.
+            value_type: Type of the SNMP value as string ("OctetString", "Integer", etc.)
+
+        Returns:
+            True if set succeeded, otherwise raises RuntimeError.
+        """
+
+        # Map value_type string to pysnmp type instance
+        if value_type == "OctetString":
+            snmp_value = OctetString(value)
+        elif value_type == "Integer":
+            snmp_value = Integer(value)
+        else:
+            raise ValueError(f"Unsupported SNMP type: {value_type}")
+
+        error_indication, error_status, error_index, var_binds = await hlapi.setCmd(
+            self._snmpEngine,
+            self._credentials,
+            self._target,
+            hlapi.ContextData(),
+            hlapi.ObjectType(hlapi.ObjectIdentity(oid), snmp_value),
+        )
+
+        if error_indication:
+            raise RuntimeError(f"SNMP set error: {error_indication}")
+        if error_status:
+            raise RuntimeError(
+                f"SNMP set error at {error_index} - {error_status.prettyPrint()}"
+            )
+        return True
 
     async def get_bulk(
         self,
