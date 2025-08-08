@@ -22,11 +22,13 @@ from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from .const import (
     DOMAIN,
     SNMP_OID_INPUTS_CURRENT,
+    SNMP_OID_INPUTS_PF,
     SNMP_OID_INPUTS_FEED_NAME,
     SNMP_OID_INPUTS_VOLTAGE,
     SNMP_OID_INPUTS_WATT_HOURS,
     SNMP_OID_INPUTS_WATTS,
     SNMP_OID_OUTLETS_CURRENT,
+    SNMP_OID_OUTLETS_PF,
     SNMP_OID_OUTLETS_DESIGNATOR,
     SNMP_OID_OUTLETS_WATT_HOURS,
     SNMP_OID_OUTLETS_WATTS,
@@ -55,6 +57,7 @@ async def async_setup_entry(
             + 1,
         ):
             entities.append(SnmpInputCurrentSensorEntity(coordinator, unit, index))
+            entities.append(SnmpInputPFSensorEntity(coordinator, unit, index))
             entities.append(SnmpInputVoltageSensorEntity(coordinator, unit, index))
             entities.append(SnmpInputWattsSensorEntity(coordinator, unit, index))
             entities.append(SnmpInputWattHoursSensorEntity(coordinator, unit, index))
@@ -65,6 +68,7 @@ async def async_setup_entry(
             + 1,
         ):
             entities.append(SnmpOutletCurrentSensorEntity(coordinator, unit, index))
+            entities.append(SnmpOutletPFSensorEntity(coordinator, unit, index))
             entities.append(SnmpOutletWattsSensorEntity(coordinator, unit, index))
             entities.append(SnmpOutletWattHoursSensorEntity(coordinator, unit, index))
 
@@ -136,6 +140,17 @@ class SnmpInputCurrentSensorEntity(SnmpInputSensorEntity, SensorEntity):
     _name_suffix = "Current"
     _value_oid = SNMP_OID_INPUTS_CURRENT
 
+class SnmpInputPFSensorEntity(SnmpInputSensorEntity, SensorEntity):
+    """Representation of a Eaton ePDU input current sensor."""
+
+    _attr_device_class = SensorDeviceClass.POWER_FACTOR
+    _attr_native_unit_of_measurement = None
+    _attr_entity_registry_enabled_default = False
+    _attr_suggested_display_precision = 3
+
+    _multiplier = 0.001
+    _name_suffix = "Power Factor"
+    _value_oid = SNMP_OID_INPUTS_PF
 
 class SnmpInputVoltageSensorEntity(SnmpInputSensorEntity, SensorEntity):
     """Representation of a Eaton ePDU input voltage sensor."""
@@ -188,6 +203,17 @@ class SnmpOutletCurrentSensorEntity(SnmpOutletSensorEntity, SensorEntity):
     _name_suffix = "Current"
     _value_oid = SNMP_OID_OUTLETS_CURRENT
 
+class SnmpOutletPFSensorEntity(SnmpOutletSensorEntity, SensorEntity):
+    """Representation of a Eaton ePDU outlet current sensor."""
+
+    _attr_device_class = SensorDeviceClass.POWER_FACTOR
+    _attr_native_unit_of_measurement = None
+    _attr_entity_registry_enabled_default = False
+    _attr_suggested_display_precision = 3
+
+    _multiplier = 0.001
+    _name_suffix = "Power Factor"
+    _value_oid = SNMP_OID_OUTLETS_PF
 
 class SnmpOutletWattsSensorEntity(SnmpOutletSensorEntity, SensorEntity):
     """Representation of a Eaton ePDU outlet watts sensor."""
