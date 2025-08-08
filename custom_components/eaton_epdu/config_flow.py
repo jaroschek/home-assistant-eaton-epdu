@@ -28,8 +28,10 @@ from .const import (
     ATTR_PRIV_PROTOCOL,
     ATTR_USERNAME,
     ATTR_VERSION,
+    ATTR_UPDATE_INTERVAL,
     DOMAIN,
     SNMP_PORT_DEFAULT,
+    UPDATE_INTERVAL_DEFAULT,
     AuthProtocol,
     PrivProtocol,
     SnmpVersion,
@@ -45,6 +47,7 @@ def get_host_schema_config(data: ConfigType) -> Schema:
             vol.Required(
                 ATTR_PORT, default=data.get(ATTR_PORT, SNMP_PORT_DEFAULT)
             ): cv.port,
+            vol.Required(ATTR_UPDATE_INTERVAL, default=data.get(ATTR_UPDATE_INTERVAL, UPDATE_INTERVAL_DEFAULT)) : cv.positive_int,
             vol.Required(
                 ATTR_VERSION, default=data.get(ATTR_VERSION) or SnmpVersion.V1
             ): SelectSelector(
@@ -65,6 +68,7 @@ def get_host_schema_options(data: ConfigType) -> Schema:
             vol.Required(
                 ATTR_PORT, default=data.get(ATTR_PORT, SNMP_PORT_DEFAULT)
             ): cv.port,
+            vol.Required(ATTR_UPDATE_INTERVAL, default=data.get(ATTR_UPDATE_INTERVAL, UPDATE_INTERVAL_DEFAULT)) : cv.positive_int,
             vol.Required(
                 ATTR_VERSION, default=data.get(ATTR_VERSION) or SnmpVersion.V1
             ): SelectSelector(
