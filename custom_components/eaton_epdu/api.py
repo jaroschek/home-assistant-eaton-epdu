@@ -53,12 +53,18 @@ _LOGGER = logging.getLogger(__name__)
 class SnmpApi:
     """Provide an api for Eaton ePDU."""
 
-    def __init__(self, entry: ConfigEntry, snmpEngine: SnmpEngine) -> None:
+    _credentials: hlapi.CommunityData | hlapi.UsmUserData
+    _target: hlapi.UdpTransportTarget | hlapi.Udp6TransportTarget
+    _version: str
+
+    def __init__(self, snmpEngine: SnmpEngine) -> None:
         """Init the SnmpApi."""
         self._snmpEngine = snmpEngine
 
+    async def setup(self, entry: ConfigEntry) -> None:
+        """Setup the SnmpApi."""
         try:
-            self._target = hlapi.UdpTransportTarget(
+            self._target = await hlapi.UdpTransportTarget.create(
                 (
                     entry.data.get(ATTR_HOST),
                     entry.data.get(ATTR_PORT, SNMP_PORT_DEFAULT),
@@ -67,7 +73,7 @@ class SnmpApi:
             )
         except PySnmpError:
             try:
-                self._target = hlapi.Udp6TransportTarget(
+                self._target = await hlapi.Udp6TransportTarget.create(
                     (
                         entry.data.get(ATTR_HOST),
                         entry.data.get(ATTR_PORT, SNMP_PORT_DEFAULT),
@@ -105,7 +111,12 @@ class SnmpApi:
         while len(oids):
             _LOGGER.debug("Get OID(s) %s", oids)
 
-            error_indication, error_status, error_index, var_binds = await hlapi.getCmd(
+            (
+                error_indication,
+                error_status,
+                error_index,
+                var_binds,
+            ) = await hlapi.get_cmd(
                 self._snmpEngine,
                 self._credentials,
                 self._target,
@@ -146,7 +157,7 @@ class SnmpApi:
                 error_status,
                 error_index,
                 var_bind_table,
-            ) = await hlapi.bulkCmd(
+            ) = await hlapi.bulk_cmd(
                 self._snmpEngine,
                 self._credentials,
                 self._target,
@@ -158,16 +169,15 @@ class SnmpApi:
 
             if not error_indication and not error_indication:
                 items = {}
-                for var_bind_row in var_bind_table:
-                    for var_bind in var_bind_row:
-                        items[str(var_bind[0])] = __class__.cast(var_bind[1])
+                for var_bind in var_bind_table:
+                    items[str(var_bind[0])] = __class__.cast(var_bind[1])
                 result.append(items)
             else:
                 raise RuntimeError(
                     f"Got SNMP error: {error_indication} {error_status} {error_index}"
                 )
 
-            var_binds = var_bind_table[-1]
+            var_binds = var_bind_table
 
         return result
 

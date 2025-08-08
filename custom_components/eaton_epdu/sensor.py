@@ -24,6 +24,7 @@ from .const import (
     SNMP_OID_INPUTS_CURRENT,
     SNMP_OID_INPUTS_PF,
     SNMP_OID_INPUTS_FEED_NAME,
+    SNMP_OID_INPUTS_POWER_FACTOR,
     SNMP_OID_INPUTS_VOLTAGE,
     SNMP_OID_INPUTS_WATT_HOURS,
     SNMP_OID_INPUTS_WATTS,
@@ -135,6 +136,53 @@ class SnmpSensorEntity(SnmpEntity, SensorEntity):
         super().async_write_ha_state()
 
 
+class SnmpWattsSensorEntity(SnmpSensorEntity, SensorEntity):
+    """Representation of a Eaton ePDU  watts sensor."""
+
+    _attr_device_class = SensorDeviceClass.POWER
+    _attr_native_unit_of_measurement = UnitOfPower.WATT
+
+    _name_suffix = "Watts"
+    _current_oid: str | None = None
+    _voltage_oid: str | None = None
+    _factor_oid: str | None = None
+
+    def __init__(self, coordinator: SnmpCoordinator, unit: str, index: str) -> None:
+        """Initialize a Eaton ePDU input watts sensor."""
+        super().__init__(coordinator, unit, index)
+        self._current_oid = self._current_oid.replace("unit", unit).replace(
+            "index", str(index)
+        )
+        self._voltage_oid = self._voltage_oid.replace("unit", unit).replace(
+            "index", str(index)
+        )
+        self._factor_oid = self._factor_oid.replace("unit", unit).replace(
+            "index", str(index)
+        )
+        current_value = (
+            self.coordinator.data.get(self._current_oid, self._default_value) / 1000
+        )
+        voltage_value = (
+            self.coordinator.data.get(self._voltage_oid, self._default_value) / 1000
+        )
+        factor_value = self.coordinator.data.get(self._factor_oid, 1000) / 1000
+        self._attr_native_value = current_value * voltage_value * abs(factor_value)
+
+    @callback
+    def _handle_coordinator_update(self) -> None:
+        """Handle updated data from the coordinator."""
+        current_value = (
+            self.coordinator.data.get(self._current_oid, self._default_value) / 1000
+        )
+        voltage_value = (
+            self.coordinator.data.get(self._voltage_oid, self._default_value) / 1000
+        )
+        factor_value = self.coordinator.data.get(self._factor_oid, 1000) / 1000
+        self._attr_native_value = current_value * voltage_value * abs(factor_value)
+
+        super().async_write_ha_state()
+
+
 class SnmpInputSensorEntity(SnmpSensorEntity, SensorEntity):
     """Representation of a Eaton ePDU input sensor."""
 
@@ -176,14 +224,15 @@ class SnmpInputVoltageSensorEntity(SnmpInputSensorEntity, SensorEntity):
     _value_oid = SNMP_OID_INPUTS_VOLTAGE
 
 
-class SnmpInputWattsSensorEntity(SnmpInputSensorEntity, SensorEntity):
+class SnmpInputWattsSensorEntity(
+    SnmpWattsSensorEntity, SnmpInputSensorEntity, SensorEntity
+):
     """Representation of a Eaton ePDU input watts sensor."""
 
-    _attr_device_class = SensorDeviceClass.POWER
-    _attr_native_unit_of_measurement = UnitOfPower.WATT
-
-    _name_suffix = "Watts"
     _value_oid = SNMP_OID_INPUTS_WATTS
+    _current_oid = SNMP_OID_INPUTS_CURRENT
+    _voltage_oid = SNMP_OID_INPUTS_VOLTAGE
+    _factor_oid = SNMP_OID_INPUTS_POWER_FACTOR
 
 
 class SnmpInputWattHoursSensorEntity(SnmpInputSensorEntity, SensorEntity):
