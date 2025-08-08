@@ -135,13 +135,14 @@ class SnmpInputCurrentSensorEntity(SnmpInputSensorEntity, SensorEntity):
 
     _attr_device_class = SensorDeviceClass.CURRENT
     _attr_native_unit_of_measurement = UnitOfElectricCurrent.AMPERE
+    _attr_suggested_display_precision = 3
 
     _multiplier = 0.001
     _name_suffix = "Current"
     _value_oid = SNMP_OID_INPUTS_CURRENT
 
 class SnmpInputPFSensorEntity(SnmpInputSensorEntity, SensorEntity):
-    """Representation of a Eaton ePDU input current sensor."""
+    """Representation of a Eaton ePDU input power factor sensor."""
 
     _attr_device_class = SensorDeviceClass.POWER_FACTOR
     _attr_native_unit_of_measurement = None
@@ -198,13 +199,14 @@ class SnmpOutletCurrentSensorEntity(SnmpOutletSensorEntity, SensorEntity):
     _attr_device_class = SensorDeviceClass.CURRENT
     _attr_native_unit_of_measurement = UnitOfElectricCurrent.AMPERE
     _attr_entity_registry_visible_default = False
+    _attr_suggested_display_precision = 3
 
     _multiplier = 0.001
     _name_suffix = "Current"
     _value_oid = SNMP_OID_OUTLETS_CURRENT
 
 class SnmpOutletPFSensorEntity(SnmpOutletSensorEntity, SensorEntity):
-    """Representation of a Eaton ePDU outlet current sensor."""
+    """Representation of a Eaton ePDU outlet power factor sensor."""
 
     _attr_device_class = SensorDeviceClass.POWER_FACTOR
     _attr_native_unit_of_measurement = None
