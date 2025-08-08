@@ -15,11 +15,13 @@ from .api import SnmpApi
 from .const import (
     DOMAIN,
     SNMP_OID_INPUTS_CURRENT,
+    SNMP_OID_INPUTS_PF,
     SNMP_OID_INPUTS_FEED_NAME,
     SNMP_OID_INPUTS_VOLTAGE,
     SNMP_OID_INPUTS_WATT_HOURS,
     SNMP_OID_INPUTS_WATTS,
     SNMP_OID_OUTLETS_CURRENT,
+    SNMP_OID_OUTLETS_PF,
     SNMP_OID_OUTLETS_DESIGNATOR,
     SNMP_OID_OUTLETS_WATT_HOURS,
     SNMP_OID_OUTLETS_WATTS,
@@ -31,6 +33,8 @@ from .const import (
     SNMP_OID_UNITS_PART_NUMBER,
     SNMP_OID_UNITS_PRODUCT_NAME,
     SNMP_OID_UNITS_SERIAL_NUMBER,
+    ATTR_UPDATE_INTERVAL,
+    UPDATE_INTERVAL_DEFAULT
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -43,11 +47,12 @@ class SnmpCoordinator(DataUpdateCoordinator):
         self, hass: HomeAssistant, entry: ConfigEntry, snmpEngine: SnmpEngine
     ) -> None:
         """Initialize the coordinator."""
+
         super().__init__(
             hass,
             _LOGGER,
             name=DOMAIN,
-            update_interval=timedelta(seconds=60),
+            update_interval=timedelta(seconds=entry.data.get(ATTR_UPDATE_INTERVAL, UPDATE_INTERVAL_DEFAULT)),
         )
         self._api = SnmpApi(entry, snmpEngine)
 
@@ -86,6 +91,9 @@ class SnmpCoordinator(DataUpdateCoordinator):
                             SNMP_OID_INPUTS_CURRENT.replace("unit", unit).replace(
                                 "index", ""
                             ),
+                            SNMP_OID_INPUTS_PF.replace("unit", unit).replace(
+                                "index", ""
+                            ),
                             SNMP_OID_INPUTS_VOLTAGE.replace("unit", unit).replace(
                                 "index", ""
                             ),
@@ -110,6 +118,9 @@ class SnmpCoordinator(DataUpdateCoordinator):
                                 "index", ""
                             ),
                             SNMP_OID_OUTLETS_CURRENT.replace("unit", unit).replace(
+                                "index", ""
+                            ),
+                            SNMP_OID_OUTLETS_PF.replace("unit", unit).replace(
                                 "index", ""
                             ),
                             SNMP_OID_OUTLETS_WATTS.replace("unit", unit).replace(

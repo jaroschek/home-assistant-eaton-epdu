@@ -14,6 +14,8 @@
           "name": "Name",
           "host": "Host",
           "port": "Port",
+          "update_interval": "Update Interval",
+          "accurate_power": "Use accurate power entity (VxIxCosPhi)",
           "version": "SNMP Version"
         }
       },
@@ -39,6 +41,8 @@
         "data": {
           "host": "Host",
           "port": "Port",
+          "update_interval": "Update Interval",
+          "accurate_power": "Use accurate power entity (VxIxCosPhi)",
           "version": "SNMP Version"
         }
       },
