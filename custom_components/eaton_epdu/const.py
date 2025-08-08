@@ -24,6 +24,7 @@ ATTR_AUTH_KEY = "auth_key"
 ATTR_PRIV_PROTOCOL = "priv_protocol"
 ATTR_PRIV_KEY = "priv_key"
 ATTR_UPDATE_INTERVAL = "update_interval"
+ATTR_ACCURATE_POWER = "accurate_power"
 
 UPDATE_INTERVAL_DEFAULT = 60
 
@@ -63,6 +64,8 @@ SNMP_API_CLIENT = "snmp_api_client"
 
 SNMP_PORT_DEFAULT = 161
 
+# https://mibs.observium.org/mib/EATON-EPDU-MIB/
+
 SNMP_OID_UNITS = "1.3.6.1.4.1.534.6.6.7.1.1.0"
 SNMP_OID_UNITS_PRODUCT_NAME = "1.3.6.1.4.1.534.6.6.7.1.2.1.2.unit"
 SNMP_OID_UNITS_PART_NUMBER = "1.3.6.1.4.1.534.6.6.7.1.2.1.3.unit"
@@ -75,6 +78,7 @@ SNMP_OID_UNITS_OUTLET_COUNT = "1.3.6.1.4.1.534.6.6.7.1.2.1.22.unit"
 SNMP_OID_INPUTS_FEED_NAME = "1.3.6.1.4.1.534.6.6.7.3.1.1.10.unit.index"
 SNMP_OID_INPUTS_VOLTAGE = "1.3.6.1.4.1.534.6.6.7.3.2.1.3.unit.1.index"
 SNMP_OID_INPUTS_CURRENT = "1.3.6.1.4.1.534.6.6.7.3.3.1.4.unit.1.index"
+SNMP_OID_INPUTS_PF = "1.3.6.1.4.1.534.6.6.7.3.4.1.7.unit.1.index"
 SNMP_OID_INPUTS_WATTS = "1.3.6.1.4.1.534.6.6.7.3.4.1.4.unit.1.index"
 SNMP_OID_INPUTS_WATT_HOURS = "1.3.6.1.4.1.534.6.6.7.3.4.1.5.unit.1.index"
 
@@ -82,5 +86,6 @@ SNMP_OID_OUTLETS_ID = "1.3.6.1.4.1.534.6.6.7.6.1.1.2.unit.index"
 SNMP_OID_OUTLETS_NAME = "1.3.6.1.4.1.534.6.6.7.6.1.1.3.unit.index"
 SNMP_OID_OUTLETS_DESIGNATOR = "1.3.6.1.4.1.534.6.6.7.6.1.1.6.unit.index"
 SNMP_OID_OUTLETS_CURRENT = "1.3.6.1.4.1.534.6.6.7.6.4.1.3.unit.index"
+SNMP_OID_OUTLETS_PF = "1.3.6.1.4.1.534.6.6.7.6.5.1.6.unit.index"
 SNMP_OID_OUTLETS_WATTS = "1.3.6.1.4.1.534.6.6.7.6.5.1.3.unit.index"
 SNMP_OID_OUTLETS_WATT_HOURS = "1.3.6.1.4.1.534.6.6.7.6.5.1.4.unit.index"

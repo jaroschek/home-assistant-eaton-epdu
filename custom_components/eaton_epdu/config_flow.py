@@ -29,6 +29,7 @@ from .const import (
     ATTR_USERNAME,
     ATTR_VERSION,
     ATTR_UPDATE_INTERVAL,
+    ATTR_ACCURATE_POWER,
     DOMAIN,
     SNMP_PORT_DEFAULT,
     UPDATE_INTERVAL_DEFAULT,
@@ -48,6 +49,7 @@ def get_host_schema_config(data: ConfigType) -> Schema:
                 ATTR_PORT, default=data.get(ATTR_PORT, SNMP_PORT_DEFAULT)
             ): cv.port,
             vol.Required(ATTR_UPDATE_INTERVAL, default=data.get(ATTR_UPDATE_INTERVAL, UPDATE_INTERVAL_DEFAULT)) : cv.positive_int,
+            vol.Required(ATTR_ACCURATE_POWER, default=data.get(ATTR_ACCURATE_POWER, False)) : bool,
             vol.Required(
                 ATTR_VERSION, default=data.get(ATTR_VERSION) or SnmpVersion.V1
             ): SelectSelector(
@@ -69,6 +71,7 @@ def get_host_schema_options(data: ConfigType) -> Schema:
                 ATTR_PORT, default=data.get(ATTR_PORT, SNMP_PORT_DEFAULT)
             ): cv.port,
             vol.Required(ATTR_UPDATE_INTERVAL, default=data.get(ATTR_UPDATE_INTERVAL, UPDATE_INTERVAL_DEFAULT)) : cv.positive_int,
+            vol.Required(ATTR_ACCURATE_POWER, default=data.get(ATTR_ACCURATE_POWER, False)) : bool,
             vol.Required(
                 ATTR_VERSION, default=data.get(ATTR_VERSION) or SnmpVersion.V1
             ): SelectSelector(

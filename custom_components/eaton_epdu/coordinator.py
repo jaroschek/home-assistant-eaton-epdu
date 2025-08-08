@@ -15,11 +15,13 @@ from .api import SnmpApi
 from .const import (
     DOMAIN,
     SNMP_OID_INPUTS_CURRENT,
+    SNMP_OID_INPUTS_PF,
     SNMP_OID_INPUTS_FEED_NAME,
     SNMP_OID_INPUTS_VOLTAGE,
     SNMP_OID_INPUTS_WATT_HOURS,
     SNMP_OID_INPUTS_WATTS,
     SNMP_OID_OUTLETS_CURRENT,
+    SNMP_OID_OUTLETS_PF,
     SNMP_OID_OUTLETS_DESIGNATOR,
     SNMP_OID_OUTLETS_WATT_HOURS,
     SNMP_OID_OUTLETS_WATTS,
@@ -89,6 +91,9 @@ class SnmpCoordinator(DataUpdateCoordinator):
                             SNMP_OID_INPUTS_CURRENT.replace("unit", unit).replace(
                                 "index", ""
                             ),
+                            SNMP_OID_INPUTS_PF.replace("unit", unit).replace(
+                                "index", ""
+                            ),
                             SNMP_OID_INPUTS_VOLTAGE.replace("unit", unit).replace(
                                 "index", ""
                             ),
@@ -113,6 +118,9 @@ class SnmpCoordinator(DataUpdateCoordinator):
                                 "index", ""
                             ),
                             SNMP_OID_OUTLETS_CURRENT.replace("unit", unit).replace(
+                                "index", ""
+                            ),
+                            SNMP_OID_OUTLETS_PF.replace("unit", unit).replace(
                                 "index", ""
                             ),
                             SNMP_OID_OUTLETS_WATTS.replace("unit", unit).replace(
