@@ -34,6 +34,7 @@ from .const import (
     SNMP_OID_OUTLETS_WATTS,
     SNMP_OID_UNITS_INPUT_COUNT,
     SNMP_OID_UNITS_OUTLET_COUNT,
+    ATTR_ACCURATE_POWER,
 )
 from .coordinator import SnmpCoordinator
 from .entity import SnmpEntity
@@ -59,7 +60,10 @@ async def async_setup_entry(
             entities.append(SnmpInputCurrentSensorEntity(coordinator, unit, index))
             entities.append(SnmpInputPFSensorEntity(coordinator, unit, index))
             entities.append(SnmpInputVoltageSensorEntity(coordinator, unit, index))
-            entities.append(SnmpInputWattsSensorEntity(coordinator, unit, index))
+            if entry.data.get(ATTR_ACCURATE_POWER, False) == True:
+                entities.append(SnmpInputVAPhiSensorEntity(coordinator, unit, index))
+            else:
+                entities.append(SnmpInputWattsSensorEntity(coordinator, unit, index))
             entities.append(SnmpInputWattHoursSensorEntity(coordinator, unit, index))
 
         for index in range(
@@ -69,7 +73,15 @@ async def async_setup_entry(
         ):
             entities.append(SnmpOutletCurrentSensorEntity(coordinator, unit, index))
             entities.append(SnmpOutletPFSensorEntity(coordinator, unit, index))
-            entities.append(SnmpOutletWattsSensorEntity(coordinator, unit, index))
+            if entry.data.get(ATTR_ACCURATE_POWER, False) == True:
+                # TODO: input index is hardwired to first input
+                # Issue: ePDU seems to have outputVoltageTable (.1.3.6.1.4.1.534.6.6.7.6.3)
+                # missing. This means we need to use voltage from input
+                # Could use parent OID (1.3.6.1.4.1.534.6.6.7.6.2.1.3.unit.index.1) and
+                # a lot of queries to get group voltage but increases number of queries
+                entities.append(SnmpOutputVAPhiSensorEntity(coordinator, unit, index, 1))
+            else:
+                entities.append(SnmpOutletWattsSensorEntity(coordinator, unit, index))
             entities.append(SnmpOutletWattHoursSensorEntity(coordinator, unit, index))
 
     async_add_entities(entities)
@@ -237,3 +249,99 @@ class SnmpOutletWattHoursSensorEntity(SnmpOutletSensorEntity, SensorEntity):
     _multiplier = 0.001
     _name_suffix = "Kilowatt Hours"
     _value_oid = SNMP_OID_OUTLETS_WATT_HOURS
+
+class SnmpInputVAPhiSensorEntity(SnmpEntity, SensorEntity):
+    """Takes voltage, current and power factor and generates a power sensor."""
+
+    _attr_state_class = SensorStateClass.MEASUREMENT
+    _attr_device_class = SensorDeviceClass.POWER
+    _attr_native_unit_of_measurement = UnitOfPower.WATT
+    _attr_suggested_display_precision = 3
+
+    _name_oid = SNMP_OID_INPUTS_FEED_NAME
+
+    _name_prefix: str = "Input"
+    _name_suffix: str = "Watts"
+
+    _default_value: float = 0.0
+
+    def get_value(self) -> float:
+        voltage = self.coordinator.data.get(SNMP_OID_INPUTS_VOLTAGE.replace("unit", self._unit).replace("index", str(self._index)), 0)
+        current = self.coordinator.data.get(SNMP_OID_INPUTS_CURRENT.replace("unit", self._unit).replace("index", str(self._index)), 0)
+        cosphi = self.coordinator.data.get(SNMP_OID_INPUTS_PF.replace("unit", self._unit).replace("index", str(self._index)), 0)
+
+        return (voltage/1000.0) * (current/1000) * (abs(cosphi)/1000)
+
+    def __init__(self, coordinator: SnmpCoordinator, unit: str, index: str) -> None:
+        """Initialize a Eaton ePDU sensor."""
+        super().__init__(coordinator, unit)
+
+        self._index = index
+
+        self._name_oid = self._name_oid.replace("unit", unit).replace(
+            "index", str(index)
+        )
+        device_name = self.device_info["name"]
+        sensor_name = self.coordinator.data.get(self._name_oid)
+        self._attr_name = (
+            f"{device_name} {self._name_prefix} {sensor_name} {self._name_suffix}"
+        )
+        self._attr_unique_id = f"{DOMAIN}_{self.identifier}_{self._name_oid}_watts2"
+        self._attr_native_value = self.get_value()
+
+    @callback
+    def _handle_coordinator_update(self) -> None:
+        """Handle updated data from the coordinator."""
+
+        self._attr_native_value = self.get_value()
+
+        super().async_write_ha_state()
+
+class SnmpOutputVAPhiSensorEntity(SnmpEntity, SensorEntity):
+    """Takes voltage, current and power factor and generates a power sensor."""
+
+    _attr_state_class = SensorStateClass.MEASUREMENT
+    _attr_device_class = SensorDeviceClass.POWER
+    _attr_native_unit_of_measurement = UnitOfPower.WATT
+    _attr_suggested_display_precision = 3
+
+    _name_oid = SNMP_OID_OUTLETS_DESIGNATOR
+
+    _name_prefix: str = "Outlet"
+    _name_suffix: str = "Watts"
+
+    _default_value: float = 0.0
+
+    def get_value(self) -> float:
+        voltage = self.coordinator.data.get(SNMP_OID_INPUTS_VOLTAGE.replace("unit", self._unit).replace("index", str(self._input_index)), 0)
+        current = self.coordinator.data.get(SNMP_OID_OUTLETS_CURRENT.replace("unit", self._unit).replace("index", str(self._index)), 0)
+        cosphi = self.coordinator.data.get(SNMP_OID_OUTLETS_PF.replace("unit", self._unit).replace("index", str(self._index)), 0)
+
+        return (voltage/1000.0) * (current/1000) * (abs(cosphi)/1000)
+
+    def __init__(self, coordinator: SnmpCoordinator, unit: str, index: str, input_index: str) -> None:
+        """Initialize a Eaton ePDU sensor."""
+        super().__init__(coordinator, unit)
+
+        self._index = index
+        self._input_index = input_index
+
+        self._name_oid = self._name_oid.replace("unit", unit).replace(
+            "index", str(index)
+        )
+        device_name = self.device_info["name"]
+        sensor_name = self.coordinator.data.get(self._name_oid)
+        self._attr_name = (
+            f"{device_name} {self._name_prefix} {sensor_name} {self._name_suffix}"
+        )
+        self._attr_unique_id = f"{DOMAIN}_{self.identifier}_{self._name_oid}_watts2"
+        self._attr_native_value = self.get_value()
+
+    @callback
+    def _handle_coordinator_update(self) -> None:
+        """Handle updated data from the coordinator."""
+
+        self._attr_native_value = self.get_value()
+
+        super().async_write_ha_state()
+

@@ -24,6 +24,7 @@ ATTR_AUTH_KEY = "auth_key"
 ATTR_PRIV_PROTOCOL = "priv_protocol"
 ATTR_PRIV_KEY = "priv_key"
 ATTR_UPDATE_INTERVAL = "update_interval"
+ATTR_ACCURATE_POWER = "accurate_power"
 
 UPDATE_INTERVAL_DEFAULT = 60
 
