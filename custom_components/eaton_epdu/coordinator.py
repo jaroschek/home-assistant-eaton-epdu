@@ -43,7 +43,7 @@ _LOGGER = logging.getLogger(__name__)
 class SnmpCoordinator(DataUpdateCoordinator):
     """Data update coordinator."""
 
-    def __init__(self, hass: HomeAssistant, api: SnmpApi) -> None:
+    def __init__(self, hass: HomeAssistant, entry: ConfigEntry, api: SnmpApi) -> None:
         """Initialize the coordinator."""
         super().__init__(
             hass,
