@@ -1,4 +1,5 @@
 """Constants for the Eaton ePDU integration."""
+
 from __future__ import annotations
 
 from enum import StrEnum
@@ -80,6 +81,7 @@ SNMP_OID_INPUTS_VOLTAGE = "1.3.6.1.4.1.534.6.6.7.3.2.1.3.unit.1.index"
 SNMP_OID_INPUTS_CURRENT = "1.3.6.1.4.1.534.6.6.7.3.3.1.4.unit.1.index"
 SNMP_OID_INPUTS_PF = "1.3.6.1.4.1.534.6.6.7.3.4.1.7.unit.1.index"
 SNMP_OID_INPUTS_WATTS = "1.3.6.1.4.1.534.6.6.7.3.4.1.4.unit.1.index"
+SNMP_OID_INPUTS_POWER_FACTOR = "1.3.6.1.4.1.534.6.6.7.3.4.1.7.unit.1.index"
 SNMP_OID_INPUTS_WATT_HOURS = "1.3.6.1.4.1.534.6.6.7.3.4.1.5.unit.1.index"
 
 SNMP_OID_OUTLETS_ID = "1.3.6.1.4.1.534.6.6.7.6.1.1.2.unit.index"
