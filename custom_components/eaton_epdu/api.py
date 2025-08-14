@@ -164,7 +164,7 @@ class SnmpApi:
         else:
             raise ValueError(f"Unsupported SNMP type: {value_type}")
 
-        error_indication, error_status, error_index, var_binds = await hlapi.setCmd(
+        error_indication, error_status, error_index, var_binds = await hlapi.set_cmd(
             self._snmpEngine,
             self._credentials,
             self._target,
