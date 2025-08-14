@@ -25,6 +25,7 @@ from .const import (
     SNMP_OID_OUTLETS_DESIGNATOR,
     SNMP_OID_OUTLETS_WATT_HOURS,
     SNMP_OID_OUTLETS_WATTS,
+    SNMP_OID_OUTLETS_STATUS,
     SNMP_OID_UNITS,
     SNMP_OID_UNITS_DEVICE_NAME,
     SNMP_OID_UNITS_FIRMWARE_VERSION,
@@ -126,6 +127,9 @@ class SnmpCoordinator(DataUpdateCoordinator):
                             SNMP_OID_OUTLETS_WATT_HOURS.replace("unit", unit).replace(
                                 "index", ""
                             ),
+                            SNMP_OID_OUTLETS_STATUS.replace("unit", unit).replace(
+                                "index", ""
+                            ),
                         ],
                         outlet_count,
                     ):
@@ -153,3 +157,14 @@ class SnmpCoordinator(DataUpdateCoordinator):
     async def _async_update_data(self) -> dict:
         """Fetch the latest data from the source."""
         return await self._update_data()
+    
+    async def set_snmp_value(self, oid: str, value, value_type: str = "OctetString") -> bool:
+        """Set SNMP value and refresh data."""
+        try:
+            result = await self._api.set(oid, value, value_type)
+            _LOGGER.debug(f"Successfully set SNMP OID {oid} to {value}")
+            await self.async_refresh()
+            return result
+        except Exception as e:
+            _LOGGER.error(f"Failed to set SNMP OID {oid}: {e}")
+            raise
