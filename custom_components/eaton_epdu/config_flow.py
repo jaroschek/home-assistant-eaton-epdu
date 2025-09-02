@@ -1,4 +1,5 @@
 """Config flow for Eaton ePDU integration."""
+
 from __future__ import annotations
 
 import voluptuous as vol
@@ -48,8 +49,13 @@ def get_host_schema_config(data: ConfigType) -> Schema:
             vol.Required(
                 ATTR_PORT, default=data.get(ATTR_PORT, SNMP_PORT_DEFAULT)
             ): cv.port,
-            vol.Required(ATTR_UPDATE_INTERVAL, default=data.get(ATTR_UPDATE_INTERVAL, UPDATE_INTERVAL_DEFAULT)) : cv.positive_int,
-            vol.Required(ATTR_ACCURATE_POWER, default=data.get(ATTR_ACCURATE_POWER, False)) : bool,
+            vol.Required(
+                ATTR_UPDATE_INTERVAL,
+                default=data.get(ATTR_UPDATE_INTERVAL, UPDATE_INTERVAL_DEFAULT),
+            ): cv.positive_int,
+            vol.Required(
+                ATTR_ACCURATE_POWER, default=data.get(ATTR_ACCURATE_POWER, False)
+            ): bool,
             vol.Required(
                 ATTR_VERSION, default=data.get(ATTR_VERSION) or SnmpVersion.V1
             ): SelectSelector(
@@ -70,8 +76,13 @@ def get_host_schema_options(data: ConfigType) -> Schema:
             vol.Required(
                 ATTR_PORT, default=data.get(ATTR_PORT, SNMP_PORT_DEFAULT)
             ): cv.port,
-            vol.Required(ATTR_UPDATE_INTERVAL, default=data.get(ATTR_UPDATE_INTERVAL, UPDATE_INTERVAL_DEFAULT)) : cv.positive_int,
-            vol.Required(ATTR_ACCURATE_POWER, default=data.get(ATTR_ACCURATE_POWER, False)) : bool,
+            vol.Required(
+                ATTR_UPDATE_INTERVAL,
+                default=data.get(ATTR_UPDATE_INTERVAL, UPDATE_INTERVAL_DEFAULT),
+            ): cv.positive_int,
+            vol.Required(
+                ATTR_ACCURATE_POWER, default=data.get(ATTR_ACCURATE_POWER, False)
+            ): bool,
             vol.Required(
                 ATTR_VERSION, default=data.get(ATTR_VERSION) or SnmpVersion.V1
             ): SelectSelector(
@@ -186,7 +197,6 @@ class OptionsFlow(config_entries.OptionsFlow):
 
     def __init__(self, entry: ConfigEntry) -> None:
         """Initialize Eaton ePDU options flow."""
-        self.config_entry = entry
         self.data = dict(entry.data)
 
     async def async_step_init(self, user_input: ConfigType | None = None) -> FlowResult:
