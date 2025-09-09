@@ -125,6 +125,8 @@ class SnmpApi:
                     entry.data.get(ATTR_PRIV_PROTOCOL_WRITE, PrivProtocol.NO_PRIV)
                 ),
             )
+        else:
+            self._credentials_write = None
 
     @staticmethod
     def construct_object_types(list_of_oids):
