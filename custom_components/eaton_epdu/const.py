@@ -12,6 +12,7 @@ MANUFACTURER = "Eaton"
 
 PLATFORMS = [
     Platform.SENSOR,
+    Platform.SWITCH
 ]
 
 ATTR_NAME = "name"
@@ -91,3 +92,6 @@ SNMP_OID_OUTLETS_CURRENT = "1.3.6.1.4.1.534.6.6.7.6.4.1.3.unit.index"
 SNMP_OID_OUTLETS_PF = "1.3.6.1.4.1.534.6.6.7.6.5.1.6.unit.index"
 SNMP_OID_OUTLETS_WATTS = "1.3.6.1.4.1.534.6.6.7.6.5.1.3.unit.index"
 SNMP_OID_OUTLETS_WATT_HOURS = "1.3.6.1.4.1.534.6.6.7.6.5.1.4.unit.index"
+SNMP_OID_OUTLETS_STATUS = "1.3.6.1.4.1.534.6.6.7.6.6.1.2.unit.index"
+SNMP_OID_OUTLETS_SWITCH_ON = "1.3.6.1.4.1.534.6.6.7.6.6.1.4.unit.index"
+SNMP_OID_OUTLETS_SWITCH_OFF = "1.3.6.1.4.1.534.6.6.7.6.6.1.3.unit.index"
