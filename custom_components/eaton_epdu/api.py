@@ -7,10 +7,9 @@ import logging
 from pysnmp.error import PySnmpError
 import pysnmp.hlapi.asyncio as hlapi
 from pysnmp.hlapi.asyncio import SnmpEngine
+from pysnmp.proto.rfc1902 import Integer, OctetString
 
 from homeassistant.config_entries import ConfigEntry
-
-from pysnmp.proto.rfc1902 import OctetString, Integer, ObjectSyntax
 
 from .const import (
     ATTR_AUTH_KEY,
@@ -142,7 +141,7 @@ class SnmpApi:
             return items
 
         return {}
-    
+
     async def set(self, oid: str, value, value_type: str = "OctetString") -> bool:
         """
         Set SNMP value for the given OID.

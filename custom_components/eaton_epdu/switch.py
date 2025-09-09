@@ -6,25 +6,20 @@ import asyncio
 
 from homeassistant.components.switch import SwitchEntity
 from homeassistant.config_entries import ConfigEntry
-
-from homeassistant.core import HomeAssistant, callback
+from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 from .const import (
     DOMAIN,
     SNMP_OID_OUTLETS_DESIGNATOR,
-    SNMP_OID_UNITS_OUTLET_COUNT,
     SNMP_OID_OUTLETS_STATUS,
+    SNMP_OID_OUTLETS_SWITCH_OFF,
     SNMP_OID_OUTLETS_SWITCH_ON,
-    SNMP_OID_OUTLETS_SWITCH_OFF
+    SNMP_OID_UNITS_OUTLET_COUNT,
 )
 from .coordinator import SnmpCoordinator
 from .entity import SnmpEntity
 
-from homeassistant.components.switch import SwitchEntity
-from homeassistant.helpers.entity_platform import AddEntitiesCallback
-from homeassistant.config_entries import ConfigEntry
-from homeassistant.core import HomeAssistant
 
 async def async_setup_entry(
     hass: HomeAssistant, entry: ConfigEntry, async_add_entities: AddEntitiesCallback
@@ -43,6 +38,7 @@ async def async_setup_entry(
             switches.append(SnmpSwitchEntity(coordinator, unit, index))
 
     async_add_entities(switches)
+
 
 class SnmpSwitchEntity(SnmpEntity, SwitchEntity):
     """Representation of a Eaton ePDU outlet as a switch."""
@@ -80,7 +76,7 @@ class SnmpSwitchEntity(SnmpEntity, SwitchEntity):
     def is_on(self) -> bool:
         """Return true if the switch is on."""
         return self.coordinator.data.get(self._value_oid, False)
-    
+
     @property
     def available(self) -> bool:
         """Return True if entity is available."""
@@ -97,4 +93,3 @@ class SnmpSwitchEntity(SnmpEntity, SwitchEntity):
         await self.coordinator.set_snmp_value(self._oid_off, 1, "Integer")
         await asyncio.sleep(2)
         await self.coordinator.async_refresh()
-
