@@ -6,7 +6,7 @@ import voluptuous as vol
 from voluptuous.schema_builder import Schema
 
 from homeassistant import config_entries
-from homeassistant.config_entries import ConfigEntry
+from homeassistant.config_entries import ConfigEntry, OptionsFlowWithReload
 from homeassistant.core import callback
 from homeassistant.data_entry_flow import FlowResult
 from homeassistant.exceptions import HomeAssistantError
@@ -298,7 +298,7 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         return OptionsFlow(config_entry)
 
 
-class OptionsFlow(config_entries.OptionsFlow):
+class OptionsFlow(OptionsFlowWithReload):
     """Handle a options flow for Eaton ePDU."""
 
     def __init__(self, entry: ConfigEntry) -> None:
