@@ -35,7 +35,16 @@ async def async_setup_entry(
             coordinator.data.get(SNMP_OID_UNITS_OUTLET_COUNT.replace("unit", unit), 0)
             + 1,
         ):
-            switches.append(SnmpSwitchEntity(coordinator, unit, index))
+            if (
+                coordinator.data.get(
+                    SNMP_OID_OUTLETS_STATUS.replace("unit", unit).replace(
+                        "index", str(index)
+                    ),
+                    None,
+                )
+                is not None
+            ):
+                switches.append(SnmpSwitchEntity(coordinator, unit, str(index)))
 
     async_add_entities(switches)
 
@@ -52,12 +61,8 @@ class SnmpSwitchEntity(SnmpEntity, SwitchEntity):
     def __init__(self, coordinator: SnmpCoordinator, unit: str, index: str) -> None:
         """Initialize a Eaton ePDU outlet switch."""
         super().__init__(coordinator, unit)
-        self._name_oid = self._name_oid.replace("unit", unit).replace(
-            "index", str(index)
-        )
-        self._value_oid = self._value_oid.replace("unit", unit).replace(
-            "index", str(index)
-        )
+        self._name_oid = self._name_oid.replace("unit", unit).replace("index", index)
+        self._value_oid = self._value_oid.replace("unit", unit).replace("index", index)
         device_name = self.device_info["name"]
         sensor_name = self.coordinator.data.get(self._name_oid)
         self._attr_name = (
@@ -66,10 +71,10 @@ class SnmpSwitchEntity(SnmpEntity, SwitchEntity):
         self._attr_unique_id = f"{DOMAIN}_{self.identifier}_{self._value_oid}"
 
         self._oid_on = SNMP_OID_OUTLETS_SWITCH_ON.replace("unit", unit).replace(
-            "index", str(index)
+            "index", index
         )
         self._oid_off = SNMP_OID_OUTLETS_SWITCH_OFF.replace("unit", unit).replace(
-            "index", str(index)
+            "index", index
         )
 
     @property
