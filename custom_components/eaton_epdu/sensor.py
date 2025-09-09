@@ -88,7 +88,7 @@ async def async_setup_entry(
                 # Could use parent OID (1.3.6.1.4.1.534.6.6.7.6.2.1.3.unit.index.1) and
                 # a lot of queries to get group voltage but increases number of queries
                 entities.append(
-                    SnmpOutputVAPhiSensorEntity(coordinator, unit, str(index), 1)
+                    SnmpOutputVAPhiSensorEntity(coordinator, unit, str(index), "1")
                 )
             else:
                 entities.append(
