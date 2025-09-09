@@ -20,21 +20,21 @@ from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 from .const import (
+    ATTR_ACCURATE_POWER,
     DOMAIN,
     SNMP_OID_INPUTS_CURRENT,
-    SNMP_OID_INPUTS_PF,
     SNMP_OID_INPUTS_FEED_NAME,
+    SNMP_OID_INPUTS_PF,
     SNMP_OID_INPUTS_VOLTAGE,
     SNMP_OID_INPUTS_WATT_HOURS,
     SNMP_OID_INPUTS_WATTS,
     SNMP_OID_OUTLETS_CURRENT,
-    SNMP_OID_OUTLETS_PF,
     SNMP_OID_OUTLETS_DESIGNATOR,
+    SNMP_OID_OUTLETS_PF,
     SNMP_OID_OUTLETS_WATT_HOURS,
     SNMP_OID_OUTLETS_WATTS,
     SNMP_OID_UNITS_INPUT_COUNT,
     SNMP_OID_UNITS_OUTLET_COUNT,
-    ATTR_ACCURATE_POWER,
 )
 from .coordinator import SnmpCoordinator
 from .entity import SnmpEntity
@@ -60,7 +60,7 @@ async def async_setup_entry(
             entities.append(SnmpInputCurrentSensorEntity(coordinator, unit, index))
             entities.append(SnmpInputPFSensorEntity(coordinator, unit, index))
             entities.append(SnmpInputVoltageSensorEntity(coordinator, unit, index))
-            if entry.data.get(ATTR_ACCURATE_POWER, False) == True:
+            if entry.data.get(ATTR_ACCURATE_POWER, False):
                 entities.append(SnmpInputVAPhiSensorEntity(coordinator, unit, index))
             else:
                 entities.append(SnmpInputWattsSensorEntity(coordinator, unit, index))
@@ -73,13 +73,15 @@ async def async_setup_entry(
         ):
             entities.append(SnmpOutletCurrentSensorEntity(coordinator, unit, index))
             entities.append(SnmpOutletPFSensorEntity(coordinator, unit, index))
-            if entry.data.get(ATTR_ACCURATE_POWER, False) == True:
+            if entry.data.get(ATTR_ACCURATE_POWER, False):
                 # TODO: input index is hardwired to first input
                 # Issue: ePDU seems to have outputVoltageTable (.1.3.6.1.4.1.534.6.6.7.6.3)
                 # missing. This means we need to use voltage from input
                 # Could use parent OID (1.3.6.1.4.1.534.6.6.7.6.2.1.3.unit.index.1) and
                 # a lot of queries to get group voltage but increases number of queries
-                entities.append(SnmpOutputVAPhiSensorEntity(coordinator, unit, index, 1))
+                entities.append(
+                    SnmpOutputVAPhiSensorEntity(coordinator, unit, index, 1)
+                )
             else:
                 entities.append(SnmpOutletWattsSensorEntity(coordinator, unit, index))
             entities.append(SnmpOutletWattHoursSensorEntity(coordinator, unit, index))
@@ -153,6 +155,7 @@ class SnmpInputCurrentSensorEntity(SnmpInputSensorEntity, SensorEntity):
     _name_suffix = "Current"
     _value_oid = SNMP_OID_INPUTS_CURRENT
 
+
 class SnmpInputPFSensorEntity(SnmpInputSensorEntity, SensorEntity):
     """Representation of a Eaton ePDU input power factor sensor."""
 
@@ -164,6 +167,7 @@ class SnmpInputPFSensorEntity(SnmpInputSensorEntity, SensorEntity):
     _multiplier = 0.001
     _name_suffix = "Power Factor"
     _value_oid = SNMP_OID_INPUTS_PF
+
 
 class SnmpInputVoltageSensorEntity(SnmpInputSensorEntity, SensorEntity):
     """Representation of a Eaton ePDU input voltage sensor."""
@@ -217,6 +221,7 @@ class SnmpOutletCurrentSensorEntity(SnmpOutletSensorEntity, SensorEntity):
     _name_suffix = "Current"
     _value_oid = SNMP_OID_OUTLETS_CURRENT
 
+
 class SnmpOutletPFSensorEntity(SnmpOutletSensorEntity, SensorEntity):
     """Representation of a Eaton ePDU outlet power factor sensor."""
 
@@ -228,6 +233,7 @@ class SnmpOutletPFSensorEntity(SnmpOutletSensorEntity, SensorEntity):
     _multiplier = 0.001
     _name_suffix = "Power Factor"
     _value_oid = SNMP_OID_OUTLETS_PF
+
 
 class SnmpOutletWattsSensorEntity(SnmpOutletSensorEntity, SensorEntity):
     """Representation of a Eaton ePDU outlet watts sensor."""
@@ -250,6 +256,7 @@ class SnmpOutletWattHoursSensorEntity(SnmpOutletSensorEntity, SensorEntity):
     _name_suffix = "Kilowatt Hours"
     _value_oid = SNMP_OID_OUTLETS_WATT_HOURS
 
+
 class SnmpInputVAPhiSensorEntity(SnmpEntity, SensorEntity):
     """Takes voltage, current and power factor and generates a power sensor."""
 
@@ -266,11 +273,26 @@ class SnmpInputVAPhiSensorEntity(SnmpEntity, SensorEntity):
     _default_value: float = 0.0
 
     def get_value(self) -> float:
-        voltage = self.coordinator.data.get(SNMP_OID_INPUTS_VOLTAGE.replace("unit", self._unit).replace("index", str(self._index)), 0)
-        current = self.coordinator.data.get(SNMP_OID_INPUTS_CURRENT.replace("unit", self._unit).replace("index", str(self._index)), 0)
-        cosphi = self.coordinator.data.get(SNMP_OID_INPUTS_PF.replace("unit", self._unit).replace("index", str(self._index)), 0)
+        voltage = self.coordinator.data.get(
+            SNMP_OID_INPUTS_VOLTAGE.replace("unit", self._unit).replace(
+                "index", str(self._index)
+            ),
+            0,
+        )
+        current = self.coordinator.data.get(
+            SNMP_OID_INPUTS_CURRENT.replace("unit", self._unit).replace(
+                "index", str(self._index)
+            ),
+            0,
+        )
+        cosphi = self.coordinator.data.get(
+            SNMP_OID_INPUTS_PF.replace("unit", self._unit).replace(
+                "index", str(self._index)
+            ),
+            0,
+        )
 
-        return (voltage/1000.0) * (current/1000) * (abs(cosphi)/1000)
+        return (voltage / 1000.0) * (current / 1000) * (abs(cosphi) / 1000)
 
     def __init__(self, coordinator: SnmpCoordinator, unit: str, index: str) -> None:
         """Initialize a Eaton ePDU sensor."""
@@ -297,6 +319,7 @@ class SnmpInputVAPhiSensorEntity(SnmpEntity, SensorEntity):
 
         super().async_write_ha_state()
 
+
 class SnmpOutputVAPhiSensorEntity(SnmpEntity, SensorEntity):
     """Takes voltage, current and power factor and generates a power sensor."""
 
@@ -313,13 +336,30 @@ class SnmpOutputVAPhiSensorEntity(SnmpEntity, SensorEntity):
     _default_value: float = 0.0
 
     def get_value(self) -> float:
-        voltage = self.coordinator.data.get(SNMP_OID_INPUTS_VOLTAGE.replace("unit", self._unit).replace("index", str(self._input_index)), 0)
-        current = self.coordinator.data.get(SNMP_OID_OUTLETS_CURRENT.replace("unit", self._unit).replace("index", str(self._index)), 0)
-        cosphi = self.coordinator.data.get(SNMP_OID_OUTLETS_PF.replace("unit", self._unit).replace("index", str(self._index)), 0)
+        voltage = self.coordinator.data.get(
+            SNMP_OID_INPUTS_VOLTAGE.replace("unit", self._unit).replace(
+                "index", str(self._input_index)
+            ),
+            0,
+        )
+        current = self.coordinator.data.get(
+            SNMP_OID_OUTLETS_CURRENT.replace("unit", self._unit).replace(
+                "index", str(self._index)
+            ),
+            0,
+        )
+        cosphi = self.coordinator.data.get(
+            SNMP_OID_OUTLETS_PF.replace("unit", self._unit).replace(
+                "index", str(self._index)
+            ),
+            0,
+        )
 
-        return (voltage/1000.0) * (current/1000) * (abs(cosphi)/1000)
+        return (voltage / 1000.0) * (current / 1000) * (abs(cosphi) / 1000)
 
-    def __init__(self, coordinator: SnmpCoordinator, unit: str, index: str, input_index: str) -> None:
+    def __init__(
+        self, coordinator: SnmpCoordinator, unit: str, index: str, input_index: str
+    ) -> None:
         """Initialize a Eaton ePDU sensor."""
         super().__init__(coordinator, unit)
 
@@ -344,4 +384,3 @@ class SnmpOutputVAPhiSensorEntity(SnmpEntity, SensorEntity):
         self._attr_native_value = self.get_value()
 
         super().async_write_ha_state()
-
