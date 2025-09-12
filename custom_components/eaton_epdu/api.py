@@ -7,19 +7,27 @@ import logging
 from pysnmp.error import PySnmpError
 import pysnmp.hlapi.asyncio as hlapi
 from pysnmp.hlapi.asyncio import SnmpEngine
+from pysnmp.proto.rfc1902 import Integer, OctetString
 
 from homeassistant.config_entries import ConfigEntry
 
 from .const import (
     ATTR_AUTH_KEY,
+    ATTR_AUTH_KEY_WRITE,
     ATTR_AUTH_PROTOCOL,
+    ATTR_AUTH_PROTOCOL_WRITE,
     ATTR_COMMUNITY,
+    ATTR_COMMUNITY_WRITE,
     ATTR_HOST,
     ATTR_PORT,
     ATTR_PRIV_KEY,
+    ATTR_PRIV_KEY_WRITE,
     ATTR_PRIV_PROTOCOL,
+    ATTR_PRIV_PROTOCOL_WRITE,
     ATTR_USERNAME,
+    ATTR_USERNAME_WRITE,
     ATTR_VERSION,
+    ATTR_VERSION_WRITE,
     SNMP_PORT_DEFAULT,
     AuthProtocol,
     PrivProtocol,
@@ -54,8 +62,10 @@ class SnmpApi:
     """Provide an api for Eaton ePDU."""
 
     _credentials: hlapi.CommunityData | hlapi.UsmUserData
+    _credentials_write: hlapi.CommunityData | hlapi.UsmUserData | None
     _target: hlapi.UdpTransportTarget | hlapi.Udp6TransportTarget
     _version: str
+    _version_write: str | None
 
     def __init__(self, snmpEngine: SnmpEngine) -> None:
         """Init the SnmpApi."""
@@ -97,6 +107,26 @@ class SnmpApi:
                 AUTH_MAP.get(entry.data.get(ATTR_AUTH_PROTOCOL, AuthProtocol.NO_AUTH)),
                 PRIV_MAP.get(entry.data.get(ATTR_PRIV_PROTOCOL, PrivProtocol.NO_PRIV)),
             )
+
+        self._version_write = entry.data.get(ATTR_VERSION_WRITE)
+        if self._version_write == SnmpVersion.V1:
+            self._credentials_write = hlapi.CommunityData(
+                entry.data.get(ATTR_COMMUNITY_WRITE), mpModel=0
+            )
+        elif self._version_write == SnmpVersion.V3:
+            self._credentials_write = hlapi.UsmUserData(
+                entry.data.get(ATTR_USERNAME_WRITE),
+                entry.data.get(ATTR_AUTH_KEY_WRITE),
+                entry.data.get(ATTR_PRIV_KEY_WRITE),
+                AUTH_MAP.get(
+                    entry.data.get(ATTR_AUTH_PROTOCOL_WRITE, AuthProtocol.NO_AUTH)
+                ),
+                PRIV_MAP.get(
+                    entry.data.get(ATTR_PRIV_PROTOCOL_WRITE, PrivProtocol.NO_PRIV)
+                ),
+            )
+        else:
+            self._credentials_write = None
 
     @staticmethod
     def construct_object_types(list_of_oids):
@@ -140,6 +170,47 @@ class SnmpApi:
             return items
 
         return {}
+
+    async def set(self, oid: str, value, value_type: str = "OctetString") -> bool:
+        """Set SNMP value for the given OID.
+
+        Args:
+            oid: OID string to set.
+            value: The value to set.
+            value_type: Type of the SNMP value as string ("OctetString", "Integer", etc.)
+
+        Returns:
+            True if set succeeded, otherwise raises RuntimeError.
+        """
+
+        # Map value_type string to pysnmp type instance
+        if value_type == "OctetString":
+            snmp_value = OctetString(value)
+        elif value_type == "Integer":
+            snmp_value = Integer(value)
+        else:
+            raise ValueError(f"Unsupported SNMP type: {value_type}")
+
+        # Use separate write credentials if available
+        credentials = self._credentials
+        if self._credentials_write is not None:
+            credentials = self._credentials_write
+
+        error_indication, error_status, error_index, var_binds = await hlapi.set_cmd(
+            self._snmpEngine,
+            credentials,
+            self._target,
+            hlapi.ContextData(),
+            hlapi.ObjectType(hlapi.ObjectIdentity(oid), snmp_value),
+        )
+
+        if error_indication:
+            raise RuntimeError(f"SNMP set error: {error_indication}")
+        if error_status:
+            raise RuntimeError(
+                f"SNMP set error at {error_index} - {error_status.prettyPrint()}"
+            )
+        return True
 
     async def get_bulk(
         self,

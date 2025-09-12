@@ -16,21 +16,40 @@
           "port": "Port",
           "update_interval": "Update Interval",
           "accurate_power": "Use accurate power entity (VxIxCosPhi)",
-          "version": "SNMP Version"
+          "version": "SNMP Version",
+          "version_write": "SNMP Version for write access"
         }
       },
       "v1": {
+        "title": "SNMP Version 1",
         "data": {
           "community": "Community"
         }
       },
+      "v1_write": {
+        "title": "SNMP Version 1 for write access",
+        "data": {
+          "community_write": "Community"
+        }
+      },
       "v3": {
+        "title": "SNMP Version 3",
         "data": {
           "username": "Username",
           "auth_key": "Auth Key",
           "auth_protocol": "Auth Protocol",
           "priv_key": "Priv Key",
           "priv_protocol": "Priv Protocol"
+        }
+      },
+      "v3_write": {
+        "title": "SNMP Version 3 for write access",
+        "data": {
+          "username_write": "Username",
+          "auth_key_write": "Auth Key",
+          "auth_protocol_write": "Auth Protocol",
+          "priv_key_write": "Priv Key",
+          "priv_protocol_write": "Priv Protocol"
         }
       }
     }
@@ -43,21 +62,40 @@
           "port": "Port",
           "update_interval": "Update Interval",
           "accurate_power": "Use accurate power entity (VxIxCosPhi)",
-          "version": "SNMP Version"
+          "version": "SNMP Version",
+          "version_write": "SNMP Version for write access"
         }
       },
       "v1": {
+        "title": "SNMP Version 1",
         "data": {
           "community": "Community"
         }
       },
+      "v1_write": {
+        "title": "SNMP Version 1 for write access",
+        "data": {
+          "community_write": "Community"
+        }
+      },
       "v3": {
+        "title": "SNMP Version 3",
         "data": {
           "username": "Username",
           "auth_key": "Auth Key",
           "auth_protocol": "Auth Protocol",
           "priv_key": "Priv Key",
           "priv_protocol": "Priv Protocol"
+        }
+      },
+      "v3_write": {
+        "title": "SNMP Version 3 for write access",
+        "data": {
+          "username_write": "Username",
+          "auth_key_write": "Auth Key",
+          "auth_protocol_write": "Auth Protocol",
+          "priv_key_write": "Priv Key",
+          "priv_protocol_write": "Priv Protocol"
         }
       }
     }

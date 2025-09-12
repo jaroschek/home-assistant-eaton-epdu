@@ -10,28 +10,42 @@ DOMAIN = "eaton_epdu"
 
 MANUFACTURER = "Eaton"
 
-PLATFORMS = [
-    Platform.SENSOR,
-]
+PLATFORMS = [Platform.SENSOR, Platform.SWITCH]
 
 ATTR_NAME = "name"
 ATTR_HOST = "host"
 ATTR_PORT = "port"
 ATTR_VERSION = "version"
+ATTR_VERSION_WRITE = "version_write"
 ATTR_COMMUNITY = "community"
+ATTR_COMMUNITY_WRITE = "community_write"
 ATTR_USERNAME = "username"
+ATTR_USERNAME_WRITE = "username_write"
 ATTR_AUTH_PROTOCOL = "auth_protocol"
+ATTR_AUTH_PROTOCOL_WRITE = "auth_protocol_write"
 ATTR_AUTH_KEY = "auth_key"
+ATTR_AUTH_KEY_WRITE = "auth_key_write"
 ATTR_PRIV_PROTOCOL = "priv_protocol"
+ATTR_PRIV_PROTOCOL_WRITE = "priv_protocol_write"
 ATTR_PRIV_KEY = "priv_key"
+ATTR_PRIV_KEY_WRITE = "priv_key_write"
 ATTR_UPDATE_INTERVAL = "update_interval"
 ATTR_ACCURATE_POWER = "accurate_power"
 
 UPDATE_INTERVAL_DEFAULT = 60
 
+
 class SnmpVersion(StrEnum):
     """Enum with snmp versions."""
 
+    V1 = "1"
+    V3 = "3"
+
+
+class SnmpVersionWrite(StrEnum):
+    """Enum with snmp versions."""
+
+    NO_Version = "None"
     V1 = "1"
     V3 = "3"
 
@@ -91,3 +105,6 @@ SNMP_OID_OUTLETS_CURRENT = "1.3.6.1.4.1.534.6.6.7.6.4.1.3.unit.index"
 SNMP_OID_OUTLETS_PF = "1.3.6.1.4.1.534.6.6.7.6.5.1.6.unit.index"
 SNMP_OID_OUTLETS_WATTS = "1.3.6.1.4.1.534.6.6.7.6.5.1.3.unit.index"
 SNMP_OID_OUTLETS_WATT_HOURS = "1.3.6.1.4.1.534.6.6.7.6.5.1.4.unit.index"
+SNMP_OID_OUTLETS_STATUS = "1.3.6.1.4.1.534.6.6.7.6.6.1.2.unit.index"
+SNMP_OID_OUTLETS_SWITCH_ON = "1.3.6.1.4.1.534.6.6.7.6.6.1.4.unit.index"
+SNMP_OID_OUTLETS_SWITCH_OFF = "1.3.6.1.4.1.534.6.6.7.6.6.1.3.unit.index"
