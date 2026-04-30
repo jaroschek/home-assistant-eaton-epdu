@@ -15,6 +15,9 @@ from homeassistant.helpers.selector import (
     SelectSelector,
     SelectSelectorConfig,
     SelectSelectorMode,
+    TextSelector,
+    TextSelectorConfig,
+    TextSelectorType,
 )
 from homeassistant.helpers.typing import ConfigType
 
@@ -155,7 +158,9 @@ def get_v3_schema(data: ConfigType) -> Schema:
                     mode=SelectSelectorMode.DROPDOWN,
                 )
             ),
-            vol.Optional(ATTR_AUTH_KEY): cv.string,
+            vol.Optional(ATTR_AUTH_KEY, default=data.get(ATTR_AUTH_KEY)): TextSelector(
+                TextSelectorConfig(type=TextSelectorType.PASSWORD)
+            ),
             vol.Required(
                 ATTR_PRIV_PROTOCOL,
                 default=data.get(ATTR_PRIV_PROTOCOL) or PrivProtocol.NO_PRIV,
@@ -165,7 +170,9 @@ def get_v3_schema(data: ConfigType) -> Schema:
                     mode=SelectSelectorMode.DROPDOWN,
                 )
             ),
-            vol.Optional(ATTR_PRIV_KEY): cv.string,
+            vol.Optional(ATTR_PRIV_KEY, default=data.get(ATTR_PRIV_KEY)): TextSelector(
+                TextSelectorConfig(type=TextSelectorType.PASSWORD)
+            ),
         }
     )
 
@@ -186,17 +193,21 @@ def get_v3_schema_write(data: ConfigType) -> Schema:
                     mode=SelectSelectorMode.DROPDOWN,
                 )
             ),
-            vol.Optional(ATTR_AUTH_KEY_WRITE): cv.string,
+            vol.Optional(
+                ATTR_AUTH_KEY_WRITE, default=data.get(ATTR_AUTH_KEY_WRITE)
+            ): TextSelector(TextSelectorConfig(type=TextSelectorType.PASSWORD)),
             vol.Required(
                 ATTR_PRIV_PROTOCOL_WRITE,
-                default=data.get(ATTR_PRIV_PROTOCOL) or PrivProtocol.NO_PRIV,
+                default=data.get(ATTR_PRIV_PROTOCOL_WRITE) or PrivProtocol.NO_PRIV,
             ): SelectSelector(
                 SelectSelectorConfig(
                     options=[e.value for e in PrivProtocol],
                     mode=SelectSelectorMode.DROPDOWN,
                 )
             ),
-            vol.Optional(ATTR_PRIV_KEY_WRITE): cv.string,
+            vol.Optional(
+                ATTR_PRIV_KEY_WRITE, default=data.get(ATTR_PRIV_KEY_WRITE)
+            ): TextSelector(TextSelectorConfig(type=TextSelectorType.PASSWORD)),
         }
     )
 
