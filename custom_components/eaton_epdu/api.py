@@ -216,10 +216,17 @@ class SnmpApi:
         start_from=1,
     ) -> list:
         """Get table data for given OIDs with defined rown count."""
+        del start_from  # Kept for compatibility with existing callers.
         _LOGGER.debug("Get %s bulk OID(s) %s", count, oids)
+        if count <= 0 or not oids:
+            return []
+
         result = []
+        width = len(oids)
+        remaining = count
         var_binds = __class__.construct_object_types(oids)
-        for _i in range(count):
+        while remaining:
+            batch_size = min(4, remaining)
             (
                 error_indication,
                 error_status,
@@ -230,24 +237,34 @@ class SnmpApi:
                 self._credentials,
                 self._target,
                 hlapi.ContextData(),
-                start_from,
-                count,
+                0,
+                batch_size,
                 *var_binds,
             )
 
-            if not error_indication and not error_indication:
-                items = {}
-                for var_bind in var_bind_table:
-                    items[str(var_bind[0])] = __class__.cast(var_bind[1])
-                result.append(items)
-            else:
+            if error_indication or error_status:
                 raise RuntimeError(
                     f"Got SNMP error: {error_indication} {error_status} {error_index}"
                 )
 
-            var_binds = var_bind_table
+            rows = [
+                var_bind_table[index : index + width]
+                for index in range(0, len(var_bind_table), width)
+                if len(var_bind_table[index : index + width]) == width
+            ]
+            if not rows:
+                break
 
-        return result
+            for row in rows:
+                items = {}
+                for var_bind in row:
+                    items[str(var_bind[0])] = __class__.cast(var_bind[1])
+                result.append(items)
+
+            var_binds = rows[-1]
+            remaining -= len(rows)
+
+        return result[:count]
 
     async def get_bulk_auto(
         self,
