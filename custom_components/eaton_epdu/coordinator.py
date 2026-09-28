@@ -21,6 +21,7 @@ from .const import (
     SNMP_OID_INPUTS_WATTS,
     SNMP_OID_OUTLETS_CURRENT,
     SNMP_OID_OUTLETS_DESIGNATOR,
+    SNMP_OID_OUTLETS_NAME,
     SNMP_OID_OUTLETS_PF,
     SNMP_OID_OUTLETS_STATUS,
     SNMP_OID_OUTLETS_WATT_HOURS,
@@ -112,6 +113,9 @@ class SnmpCoordinator(DataUpdateCoordinator):
                 if outlet_count > 0:
                     for result in await self._api.get_bulk(
                         [
+                            SNMP_OID_OUTLETS_NAME.replace("unit", unit).replace(
+                                "index", ""
+                            ),
                             SNMP_OID_OUTLETS_DESIGNATOR.replace("unit", unit).replace(
                                 "index", ""
                             ),
