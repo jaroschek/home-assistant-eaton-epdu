@@ -74,7 +74,10 @@ class SnmpSwitchEntity(SnmpEntity, SwitchEntity):
     @property
     def is_on(self) -> bool:
         """Return true if the switch is on."""
-        return self.coordinator.data.get(self._value_oid, False)
+        # Eaton reports 0=off, 1=on, 2=pendingOff and 3=pendingOn.
+        # Treat the pending states as their requested target so Home Assistant
+        # reflects a switch command without waiting for the next polling cycle.
+        return self.coordinator.data.get(self._value_oid) in (1, 3)
 
     @property
     def available(self) -> bool:
