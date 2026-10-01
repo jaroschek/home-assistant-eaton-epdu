@@ -2,12 +2,15 @@
 
 from __future__ import annotations
 
+from collections.abc import Iterable
 import logging
 
+from pyasn1.type.base import Asn1Type
 from pysnmp.error import PySnmpError
-import pysnmp.hlapi.asyncio as hlapi
-from pysnmp.hlapi.asyncio import SnmpEngine
+import pysnmp.hlapi.v3arch.asyncio as hlapi
+from pysnmp.hlapi.v3arch.asyncio import SnmpEngine
 from pysnmp.proto.rfc1902 import Integer, OctetString
+from pysnmp.proto.rfc1905 import EndOfMibView, NoSuchInstance, NoSuchObject
 
 from homeassistant.config_entries import ConfigEntry
 
@@ -55,6 +58,8 @@ PRIV_MAP = {
     PrivProtocol.AES_BLUMENTHAL_256: hlapi.USM_PRIV_CFB256_AES_BLUMENTHAL,
 }
 
+SNMP_EXCEPTION_TYPES = (NoSuchObject, NoSuchInstance, EndOfMibView)
+
 _LOGGER = logging.getLogger(__name__)
 
 
@@ -67,93 +72,85 @@ class SnmpApi:
     _version: str
     _version_write: str | None
 
-    def __init__(self, snmpEngine: SnmpEngine) -> None:
+    def __init__(self, snmp_engine: SnmpEngine) -> None:
         """Init the SnmpApi."""
-        self._snmpEngine = snmpEngine
+        self._snmp_engine = snmp_engine
 
     async def setup(self, entry: ConfigEntry) -> None:
-        """Setup the SnmpApi."""
+        """Set up the SNMP transport and credentials."""
+        address = (entry.data[ATTR_HOST], entry.data.get(ATTR_PORT, SNMP_PORT_DEFAULT))
         try:
-            self._target = await hlapi.UdpTransportTarget.create(
-                (
-                    entry.data.get(ATTR_HOST),
-                    entry.data.get(ATTR_PORT, SNMP_PORT_DEFAULT),
-                ),
-                10,
-            )
+            self._target = await hlapi.UdpTransportTarget.create(address, timeout=10)
         except PySnmpError:
-            try:
-                self._target = await hlapi.Udp6TransportTarget.create(
-                    (
-                        entry.data.get(ATTR_HOST),
-                        entry.data.get(ATTR_PORT, SNMP_PORT_DEFAULT),
-                    ),
-                    10,
-                )
-            except PySnmpError as err:
-                _LOGGER.error("Invalid SNMP host: %s", err)
-                return
+            self._target = await hlapi.Udp6TransportTarget.create(address, timeout=10)
 
-        self._version = entry.data.get(ATTR_VERSION)
+        self._version = entry.data[ATTR_VERSION]
         if self._version == SnmpVersion.V1:
             self._credentials = hlapi.CommunityData(
-                entry.data.get(ATTR_COMMUNITY), mpModel=0
+                entry.data[ATTR_COMMUNITY], mpModel=0
             )
         elif self._version == SnmpVersion.V3:
             self._credentials = hlapi.UsmUserData(
-                entry.data.get(ATTR_USERNAME),
-                entry.data.get(ATTR_AUTH_KEY),
-                entry.data.get(ATTR_PRIV_KEY),
-                AUTH_MAP.get(entry.data.get(ATTR_AUTH_PROTOCOL, AuthProtocol.NO_AUTH)),
-                PRIV_MAP.get(entry.data.get(ATTR_PRIV_PROTOCOL, PrivProtocol.NO_PRIV)),
+                entry.data[ATTR_USERNAME],
+                entry.data.get(ATTR_AUTH_KEY) or None,
+                entry.data.get(ATTR_PRIV_KEY) or None,
+                AUTH_MAP[entry.data.get(ATTR_AUTH_PROTOCOL, AuthProtocol.NO_AUTH)],
+                PRIV_MAP[entry.data.get(ATTR_PRIV_PROTOCOL, PrivProtocol.NO_PRIV)],
             )
 
         self._version_write = entry.data.get(ATTR_VERSION_WRITE)
         if self._version_write == SnmpVersion.V1:
             self._credentials_write = hlapi.CommunityData(
-                entry.data.get(ATTR_COMMUNITY_WRITE), mpModel=0
+                entry.data[ATTR_COMMUNITY_WRITE], mpModel=0
             )
         elif self._version_write == SnmpVersion.V3:
             self._credentials_write = hlapi.UsmUserData(
-                entry.data.get(ATTR_USERNAME_WRITE),
-                entry.data.get(ATTR_AUTH_KEY_WRITE),
-                entry.data.get(ATTR_PRIV_KEY_WRITE),
-                AUTH_MAP.get(
+                entry.data[ATTR_USERNAME_WRITE],
+                entry.data.get(ATTR_AUTH_KEY_WRITE) or None,
+                entry.data.get(ATTR_PRIV_KEY_WRITE) or None,
+                AUTH_MAP[
                     entry.data.get(ATTR_AUTH_PROTOCOL_WRITE, AuthProtocol.NO_AUTH)
-                ),
-                PRIV_MAP.get(
+                ],
+                PRIV_MAP[
                     entry.data.get(ATTR_PRIV_PROTOCOL_WRITE, PrivProtocol.NO_PRIV)
-                ),
+                ],
             )
         else:
             self._credentials_write = None
 
     @staticmethod
-    def construct_object_types(list_of_oids):
-        """Prepare desired objects from list of OIDs."""
-        return [hlapi.ObjectType(hlapi.ObjectIdentity(oid)) for oid in list_of_oids]
+    def construct_object_types(oids: Iterable[str]) -> list[hlapi.ObjectType]:
+        """Prepare desired objects from a list of OIDs."""
+        return [hlapi.ObjectType(hlapi.ObjectIdentity(oid.rstrip("."))) for oid in oids]
 
-    async def get(self, oids) -> dict:
-        """Get data for given OIDs in a single call."""
-        while len(oids):
-            _LOGGER.debug("Get OID(s) %s", oids)
-
+    async def get(self, oids: Iterable[str]) -> dict[str, int | float | str]:
+        """Get data for the given OIDs."""
+        remaining_oids = list(oids)
+        while remaining_oids:
+            _LOGGER.debug("Get OID(s) %s", remaining_oids)
             (
                 error_indication,
                 error_status,
                 error_index,
                 var_binds,
             ) = await hlapi.get_cmd(
-                self._snmpEngine,
+                self._snmp_engine,
                 self._credentials,
                 self._target,
                 hlapi.ContextData(),
-                *__class__.construct_object_types(oids),
+                *self.construct_object_types(remaining_oids),
             )
 
-            if error_index:
-                _LOGGER.debug("Remove error index %d", error_index - 1)
-                oids.pop(error_index - 1)
+            if (
+                not error_indication
+                and error_status == 2
+                and 0 < error_index <= len(remaining_oids)
+            ):
+                # SNMPv1 reports unsupported OIDs using noSuchName.
+                _LOGGER.debug(
+                    "Skip unsupported OID %s", remaining_oids[error_index - 1]
+                )
+                remaining_oids.pop(error_index - 1)
                 continue
 
             if error_indication or error_status:
@@ -161,84 +158,47 @@ class SnmpApi:
                     f"Got SNMP error: {error_indication} {error_status} {error_index}"
                 )
 
-            items = {}
-            for var_bind in var_binds:
-                items[str(var_bind[0])] = __class__.cast(var_bind[1])
-            return items
+            return {
+                str(oid): value
+                for oid, raw_value in var_binds
+                if (value := self.cast(raw_value)) is not None
+            }
 
         return {}
 
-    async def set(self, oid: str, value, value_type: str = "OctetString") -> bool:
-        """Set SNMP value for the given OID.
-
-        Args:
-            oid: OID string to set.
-            value: The value to set.
-            value_type: Type of the SNMP value as string ("OctetString", "Integer", etc.)
-
-        Returns:
-            True if set succeeded, otherwise raises RuntimeError.
-        """
-
-        # Map value_type string to pysnmp type instance
-        if value_type == "OctetString":
-            snmp_value = OctetString(value)
-        elif value_type == "Integer":
-            snmp_value = Integer(value)
-        else:
-            raise ValueError(f"Unsupported SNMP type: {value_type}")
-
-        # Use separate write credentials if available
-        credentials = self._credentials
-        if self._credentials_write is not None:
-            credentials = self._credentials_write
-
-        error_indication, error_status, error_index, var_binds = await hlapi.set_cmd(
-            self._snmpEngine,
-            credentials,
-            self._target,
-            hlapi.ContextData(),
-            hlapi.ObjectType(hlapi.ObjectIdentity(oid), snmp_value),
-        )
-
-        if error_indication:
-            raise RuntimeError(f"SNMP set error: {error_indication}")
-        if error_status:
-            raise RuntimeError(
-                f"SNMP set error at {error_index} - {error_status.prettyPrint()}"
-            )
-        return True
-
     async def get_bulk(
         self,
-        oids,
-        count,
-        start_from=1,
-    ) -> list:
-        """Get table data for given OIDs with defined rown count."""
-        del start_from  # Kept for compatibility with existing callers.
-        _LOGGER.debug("Get %s bulk OID(s) %s", count, oids)
-        if count <= 0 or not oids:
+        oids: Iterable[str],
+        count: int,
+        start_from: int = 1,
+    ) -> list[dict[str, int | float | str]]:
+        """Get the requested number of rows from SNMP table columns."""
+        roots = [oid.rstrip(".") for oid in oids]
+        _LOGGER.debug("Get %s bulk OID(s) %s", count, roots)
+        if count <= 0 or not roots:
             return []
 
+        request_oids = roots
+        if start_from > 1:
+            request_oids = [f"{root}.{start_from - 1}" for root in roots]
+
         result = []
-        width = len(oids)
+        width = len(roots)
         remaining = count
-        var_binds = __class__.construct_object_types(oids)
+        var_binds = self.construct_object_types(request_oids)
         while remaining:
-            batch_size = min(4, remaining)
             (
                 error_indication,
                 error_status,
                 error_index,
                 var_bind_table,
             ) = await hlapi.bulk_cmd(
-                self._snmpEngine,
+                self._snmp_engine,
                 self._credentials,
                 self._target,
                 hlapi.ContextData(),
                 0,
-                batch_size,
+                min(4, remaining),
                 *var_binds,
             )
 
@@ -257,37 +217,88 @@ class SnmpApi:
 
             for row in rows:
                 items = {}
-                for var_bind in row:
-                    items[str(var_bind[0])] = __class__.cast(var_bind[1])
+                finished = True
+                for root, (oid, raw_value) in zip(roots, row, strict=True):
+                    oid = str(oid)
+                    if not oid.startswith(f"{root}.") or isinstance(
+                        raw_value, SNMP_EXCEPTION_TYPES
+                    ):
+                        continue
+                    finished = False
+                    if (value := self.cast(raw_value)) is not None:
+                        items[oid] = value
+
+                if finished:
+                    return result
                 result.append(items)
+                remaining -= 1
+                if not remaining:
+                    return result
 
             var_binds = rows[-1]
-            remaining -= len(rows)
 
-        return result[:count]
+        return result
 
     async def get_bulk_auto(
         self,
-        oids,
-        count_oid,
-        start_from=1,
-    ) -> list:
-        """Get table data for given OIDs with determined rown count."""
-        return await self.get_bulk(
-            oids, await self.get([count_oid])[count_oid], start_from
-        )
+        oids: Iterable[str],
+        count_oid: str,
+        start_from: int = 1,
+    ) -> list[dict[str, int | float | str]]:
+        """Get table rows using the count reported by the device."""
+        data = await self.get([count_oid])
+        return await self.get_bulk(oids, int(data.get(count_oid, 0)), start_from)
 
     @staticmethod
-    def cast(value):
-        """Cast returned value into correct type."""
+    def cast(value: Asn1Type) -> int | float | str | None:
+        """Cast an SNMP value, treating missing readings as unknown."""
+        if isinstance(value, SNMP_EXCEPTION_TYPES):
+            return None
         try:
             return int(value)
         except ValueError, TypeError:
             try:
                 return float(value)
             except ValueError, TypeError:
-                try:
-                    return str(value)
-                except ValueError, TypeError:
-                    pass
-        return value
+                return str(value) or None
+
+    async def set(
+        self, oid: str, value: int | str, value_type: str = "OctetString"
+    ) -> bool:
+        """Set SNMP value for the given OID.
+
+        Args:
+            oid: OID string to set.
+            value: The value to set.
+            value_type: Type of the SNMP value as string ("OctetString", "Integer", etc.)
+
+        Returns:
+            True if set succeeded, otherwise raises RuntimeError.
+        """
+
+        if value_type == "OctetString":
+            snmp_value = OctetString(value)
+        elif value_type == "Integer":
+            snmp_value = Integer(value)
+        else:
+            raise ValueError(f"Unsupported SNMP type: {value_type}")
+
+        credentials = self._credentials
+        if self._credentials_write is not None:
+            credentials = self._credentials_write
+
+        error_indication, error_status, error_index, _var_binds = await hlapi.set_cmd(
+            self._snmp_engine,
+            credentials,
+            self._target,
+            hlapi.ContextData(),
+            hlapi.ObjectType(hlapi.ObjectIdentity(oid), snmp_value),
+        )
+
+        if error_indication:
+            raise RuntimeError(f"SNMP set error: {error_indication}")
+        if error_status:
+            raise RuntimeError(
+                f"SNMP set error at {error_index} - {error_status.prettyPrint()}"
+            )
+        return True
