@@ -8,6 +8,8 @@ from homeassistant.helpers.update_coordinator import CoordinatorEntity
 from .const import (
     DOMAIN,
     MANUFACTURER,
+    SNMP_OID_OUTLETS_DESIGNATOR,
+    SNMP_OID_OUTLETS_NAME,
     SNMP_OID_UNITS_DEVICE_NAME,
     SNMP_OID_UNITS_FIRMWARE_VERSION,
     SNMP_OID_UNITS_PART_NUMBER,
@@ -28,6 +30,32 @@ class SnmpEntity(CoordinatorEntity[SnmpCoordinator]):
     def get_unit_data(self, oid: str, default=None):
         """Fetch data from coordinator for current unit."""
         return self.coordinator.data.get(oid.replace("unit", self._unit), default)
+
+    def get_outlet_label(self, index: str) -> str:
+        """Return a display label for an outlet.
+
+        Newer ePDUs expose an outlet designator, while older models only expose
+        the outlet name. Prefer the designator to retain the existing entity
+        names, then fall back to the legacy name and finally the outlet index.
+        """
+        designator_oid = SNMP_OID_OUTLETS_DESIGNATOR.replace(
+            "unit", self._unit
+        ).replace("index", index)
+        designator = self.coordinator.data.get(designator_oid)
+        if designator not in (None, ""):
+            return f"Outlet {designator}"
+
+        name_oid = SNMP_OID_OUTLETS_NAME.replace("unit", self._unit).replace(
+            "index", index
+        )
+        name = self.coordinator.data.get(name_oid)
+        if name not in (None, ""):
+            name = str(name)
+            if name.casefold().startswith("outlet "):
+                return name
+            return f"Outlet {name}"
+
+        return f"Outlet {index}"
 
     @property
     def identifier(self):

@@ -116,15 +116,26 @@ class SnmpSensorEntity(SnmpEntity, SensorEntity):
 
     _default_value: float = 0.0
 
+    def get_sensor_name(self, _index: str) -> object:
+        """Return the sensor name component."""
+        return self.coordinator.data.get(self._name_oid)
+
     def __init__(self, coordinator: SnmpCoordinator, unit: str, index: str) -> None:
         """Initialize a Eaton ePDU sensor."""
         super().__init__(coordinator, unit)
         self._name_oid = self._name_oid.replace("unit", unit).replace("index", index)
         self._value_oid = self._value_oid.replace("unit", unit).replace("index", index)
         device_name = self.device_info["name"]
-        sensor_name = self.coordinator.data.get(self._name_oid)
-        self._attr_name = (
-            f"{device_name} {self._name_prefix} {sensor_name} {self._name_suffix}"
+        sensor_name = self.get_sensor_name(index)
+        self._attr_name = " ".join(
+            str(component)
+            for component in (
+                device_name,
+                self._name_prefix,
+                sensor_name,
+                self._name_suffix,
+            )
+            if component not in (None, "")
         )
         self._attr_unique_id = f"{DOMAIN}_{self.identifier}_{self._value_oid}"
         self._attr_native_value = self.coordinator.data.get(
@@ -214,7 +225,10 @@ class SnmpOutletSensorEntity(SnmpSensorEntity, SensorEntity):
     """Representation of a Eaton ePDU outlet sensor."""
 
     _name_oid = SNMP_OID_OUTLETS_DESIGNATOR
-    _name_prefix = "Outlet"
+
+    def get_sensor_name(self, index: str) -> str:
+        """Return the outlet label with support for legacy ePDUs."""
+        return self.get_outlet_label(index)
 
 
 class SnmpOutletCurrentSensorEntity(SnmpOutletSensorEntity, SensorEntity):
@@ -337,7 +351,6 @@ class SnmpOutputVAPhiSensorEntity(SnmpEntity, SensorEntity):
 
     _name_oid = SNMP_OID_OUTLETS_DESIGNATOR
 
-    _name_prefix: str = "Outlet"
     _name_suffix: str = "Watts"
 
     _default_value: float = 0.0
@@ -353,10 +366,8 @@ class SnmpOutputVAPhiSensorEntity(SnmpEntity, SensorEntity):
 
         self._name_oid = self._name_oid.replace("unit", unit).replace("index", index)
         device_name = self.device_info["name"]
-        sensor_name = self.coordinator.data.get(self._name_oid)
-        self._attr_name = (
-            f"{device_name} {self._name_prefix} {sensor_name} {self._name_suffix}"
-        )
+        outlet_label = self.get_outlet_label(index)
+        self._attr_name = f"{device_name} {outlet_label} {self._name_suffix}"
         self._attr_unique_id = f"{DOMAIN}_{self.identifier}_{self._name_oid}_watts2"
         self._attr_native_value = self.get_value()
 
