@@ -5,6 +5,8 @@ from __future__ import annotations
 from datetime import timedelta
 import logging
 
+from pysnmp.error import PySnmpError
+
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
@@ -49,6 +51,7 @@ class SnmpCoordinator(DataUpdateCoordinator):
             hass,
             _LOGGER,
             name=DOMAIN,
+            config_entry=entry,
             update_interval=timedelta(
                 seconds=entry.data.get(ATTR_UPDATE_INTERVAL, UPDATE_INTERVAL_DEFAULT)
             ),
@@ -58,13 +61,10 @@ class SnmpCoordinator(DataUpdateCoordinator):
     async def _update_data(self) -> dict:
         """Fetch the latest data from the source."""
         try:
-            if self.data is None:
-                self.data = await self._api.get([SNMP_OID_UNITS])
-            else:
-                self.data.update(await self._api.get([SNMP_OID_UNITS]))
+            data = await self._api.get([SNMP_OID_UNITS])
 
-            for unit in self.get_units():
-                self.data.update(
+            for unit in self.get_units(data):
+                data.update(
                     await self._api.get(
                         [
                             SNMP_OID_UNITS_PRODUCT_NAME.replace("unit", unit),
@@ -78,7 +78,7 @@ class SnmpCoordinator(DataUpdateCoordinator):
                     )
                 )
 
-                input_count = self.data.get(
+                input_count = data.get(
                     SNMP_OID_UNITS_INPUT_COUNT.replace("unit", unit), 0
                 )
                 if input_count > 0:
@@ -105,9 +105,9 @@ class SnmpCoordinator(DataUpdateCoordinator):
                         ],
                         input_count,
                     ):
-                        self.data.update(result)
+                        data.update(result)
 
-                outlet_count = self.data.get(
+                outlet_count = data.get(
                     SNMP_OID_UNITS_OUTLET_COUNT.replace("unit", unit), 0
                 )
                 if outlet_count > 0:
@@ -137,26 +137,20 @@ class SnmpCoordinator(DataUpdateCoordinator):
                         ],
                         outlet_count,
                     ):
-                        self.data.update(result)
+                        data.update(result)
 
-            return self.data
-
-        except RuntimeError as err:
+        except (RuntimeError, PySnmpError) as err:
             raise UpdateFailed(err) from err
+        return data
 
-    def get_units(self) -> dict:
-        """Get units as dict."""
-        units = self.data.get(SNMP_OID_UNITS)
-
-        if units is None:
+    def get_units(self, data: dict | None = None) -> list[str]:
+        """Return the units reported by the ePDU."""
+        if data is None:
+            data = self.data
+        units = data.get(SNMP_OID_UNITS)
+        if units in (None, ""):
             return []
-
-        if isinstance(units, str) and units.find(",") != -1:
-            units = units.split(",")
-        else:
-            units = [str(units)]
-
-        return units
+        return [unit.strip() for unit in str(units).split(",") if unit.strip()]
 
     async def _async_update_data(self) -> dict:
         """Fetch the latest data from the source."""
@@ -166,11 +160,7 @@ class SnmpCoordinator(DataUpdateCoordinator):
         self, oid: str, value, value_type: str = "OctetString"
     ) -> bool:
         """Set SNMP value and refresh data."""
-        try:
-            result = await self._api.set(oid, value, value_type)
-            _LOGGER.debug("Successfully set SNMP OID %s to %s", oid, value)
-            await self.async_refresh()
-            return result
-        except Exception:
-            _LOGGER.error("Failed to set SNMP OID %s: %s", oid, value)
-            raise
+        result = await self._api.set(oid, value, value_type)
+        _LOGGER.debug("Successfully set SNMP OID %s to %s", oid, value)
+        await self.async_refresh()
+        return result
