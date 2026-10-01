@@ -82,7 +82,9 @@ class SnmpSwitchEntity(SnmpEntity, SwitchEntity):
     @property
     def available(self) -> bool:
         """Return True if entity is available."""
-        return self.coordinator.data.get(self._value_oid, None) is not None
+        return (
+            super().available and self.coordinator.data.get(self._value_oid) is not None
+        )
 
     async def async_turn_on(self, **kwargs):
         """Turn the switch on."""

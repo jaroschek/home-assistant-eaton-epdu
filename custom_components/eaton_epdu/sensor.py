@@ -114,8 +114,6 @@ class SnmpSensorEntity(SnmpEntity, SensorEntity):
     _name_prefix: str = ""
     _name_suffix: str = ""
 
-    _default_value: float = 0.0
-
     def get_sensor_name(self, _index: str) -> object:
         """Return the sensor name component."""
         return self.coordinator.data.get(self._name_oid)
@@ -138,22 +136,22 @@ class SnmpSensorEntity(SnmpEntity, SensorEntity):
             if component not in (None, "")
         )
         self._attr_unique_id = f"{DOMAIN}_{self.identifier}_{self._value_oid}"
-        self._attr_native_value = self.coordinator.data.get(
-            self._value_oid, self._default_value
-        )
-        if self._multiplier is not None:
-            self._attr_native_value *= self._multiplier
+        self._attr_native_value = self._read_value()
 
     @callback
     def _handle_coordinator_update(self) -> None:
         """Handle updated data from the coordinator."""
-        self._attr_native_value = self.coordinator.data.get(
-            self._value_oid, self._default_value
-        )
-        if self._multiplier is not None:
-            self._attr_native_value *= self._multiplier
-
+        self._attr_native_value = self._read_value()
         super().async_write_ha_state()
+
+    def _read_value(self) -> int | float | str | None:
+        """Read this sensor's value, treating missing readings as unknown."""
+        value = self.coordinator.data.get(self._value_oid)
+        if value in (None, ""):
+            return None
+        if self._multiplier is not None:
+            value *= self._multiplier
+        return value
 
 
 class SnmpInputSensorEntity(SnmpSensorEntity, SensorEntity):
@@ -292,8 +290,6 @@ class SnmpInputVAPhiSensorEntity(SnmpEntity, SensorEntity):
     _name_prefix: str = "Input"
     _name_suffix: str = "Watts"
 
-    _default_value: float = 0.0
-
     def __init__(self, coordinator: SnmpCoordinator, unit: str, index: str) -> None:
         """Initialize a Eaton ePDU sensor."""
         super().__init__(coordinator, unit)
@@ -317,27 +313,24 @@ class SnmpInputVAPhiSensorEntity(SnmpEntity, SensorEntity):
 
         super().async_write_ha_state()
 
-    def get_value(self) -> float:
+    def get_value(self) -> float | None:
         """Return calculated value."""
         voltage = self.coordinator.data.get(
             SNMP_OID_INPUTS_VOLTAGE.replace("unit", self._unit).replace(
                 "index", self._index
-            ),
-            0,
+            )
         )
         current = self.coordinator.data.get(
             SNMP_OID_INPUTS_CURRENT.replace("unit", self._unit).replace(
                 "index", self._index
-            ),
-            0,
+            )
         )
         cosphi = self.coordinator.data.get(
-            SNMP_OID_INPUTS_PF.replace("unit", self._unit).replace(
-                "index", self._index
-            ),
-            0,
+            SNMP_OID_INPUTS_PF.replace("unit", self._unit).replace("index", self._index)
         )
 
+        if any(value in (None, "") for value in (voltage, current, cosphi)):
+            return None
         return (voltage / 1000.0) * (current / 1000) * (abs(cosphi) / 1000)
 
 
@@ -352,8 +345,6 @@ class SnmpOutputVAPhiSensorEntity(SnmpEntity, SensorEntity):
     _name_oid = SNMP_OID_OUTLETS_DESIGNATOR
 
     _name_suffix: str = "Watts"
-
-    _default_value: float = 0.0
 
     def __init__(
         self, coordinator: SnmpCoordinator, unit: str, index: str, input_index: str
@@ -379,25 +370,24 @@ class SnmpOutputVAPhiSensorEntity(SnmpEntity, SensorEntity):
 
         super().async_write_ha_state()
 
-    def get_value(self) -> float:
+    def get_value(self) -> float | None:
         """Return calculated value."""
         voltage = self.coordinator.data.get(
             SNMP_OID_INPUTS_VOLTAGE.replace("unit", self._unit).replace(
                 "index", self._input_index
-            ),
-            0,
+            )
         )
         current = self.coordinator.data.get(
             SNMP_OID_OUTLETS_CURRENT.replace("unit", self._unit).replace(
                 "index", self._index
-            ),
-            0,
+            )
         )
         cosphi = self.coordinator.data.get(
             SNMP_OID_OUTLETS_PF.replace("unit", self._unit).replace(
                 "index", self._index
-            ),
-            0,
+            )
         )
 
+        if any(value in (None, "") for value in (voltage, current, cosphi)):
+            return None
         return (voltage / 1000.0) * (current / 1000) * (abs(cosphi) / 1000)
