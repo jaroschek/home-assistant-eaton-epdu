@@ -6,6 +6,7 @@ from homeassistant.helpers.entity import DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from .const import (
+    ATTR_HOST,
     DOMAIN,
     MANUFACTURER,
     SNMP_OID_OUTLETS_DESIGNATOR,
@@ -29,7 +30,8 @@ class SnmpEntity(CoordinatorEntity[SnmpCoordinator]):
 
     def get_unit_data(self, oid: str, default=None):
         """Fetch data from coordinator for current unit."""
-        return self.coordinator.data.get(oid.replace("unit", self._unit), default)
+        value = self.coordinator.data.get(oid.replace("unit", self._unit))
+        return default if value in (None, "") else value
 
     def get_outlet_label(self, index: str) -> str:
         """Return a display label for an outlet.
@@ -58,26 +60,38 @@ class SnmpEntity(CoordinatorEntity[SnmpCoordinator]):
         return f"Outlet {index}"
 
     @property
-    def identifier(self):
+    def identifier(self) -> str:
         """Return the device identifier."""
-        return self.get_unit_data(
-            SNMP_OID_UNITS_SERIAL_NUMBER,
+        return str(
             self.get_unit_data(
-                SNMP_OID_UNITS_DEVICE_NAME,
+                SNMP_OID_UNITS_SERIAL_NUMBER,
                 self.get_unit_data(
-                    SNMP_OID_UNITS_PART_NUMBER,
-                    self.get_unit_data(SNMP_OID_UNITS_PRODUCT_NAME),
+                    SNMP_OID_UNITS_DEVICE_NAME,
+                    self.get_unit_data(
+                        SNMP_OID_UNITS_PART_NUMBER,
+                        self.get_unit_data(
+                            SNMP_OID_UNITS_PRODUCT_NAME,
+                            f"{self.coordinator.config_entry.data[ATTR_HOST]}_{self._unit}",
+                        ),
+                    ),
                 ),
-            ),
+            )
         )
 
     @property
-    def device_info(self):
+    def device_info(self) -> DeviceInfo:
         """Return the device_info of the device."""
         model = self.get_unit_data(SNMP_OID_UNITS_PRODUCT_NAME)
         name = self.get_unit_data(SNMP_OID_UNITS_DEVICE_NAME)
         if name:
-            model = f"{self.get_unit_data(SNMP_OID_UNITS_PART_NUMBER)} {model}"
+            model = (
+                " ".join(
+                    str(value)
+                    for value in (self.get_unit_data(SNMP_OID_UNITS_PART_NUMBER), model)
+                    if value not in (None, "")
+                )
+                or None
+            )
         else:
             name = self.get_unit_data(SNMP_OID_UNITS_PART_NUMBER)
 
