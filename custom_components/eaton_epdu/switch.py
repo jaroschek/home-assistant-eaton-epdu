@@ -11,7 +11,6 @@ from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 from .const import (
     DOMAIN,
-    SNMP_OID_OUTLETS_DESIGNATOR,
     SNMP_OID_OUTLETS_STATUS,
     SNMP_OID_OUTLETS_SWITCH_OFF,
     SNMP_OID_OUTLETS_SWITCH_ON,
@@ -52,8 +51,6 @@ async def async_setup_entry(
 class SnmpSwitchEntity(SnmpEntity, SwitchEntity):
     """Representation of a Eaton ePDU outlet as a switch."""
 
-    _name_oid = SNMP_OID_OUTLETS_DESIGNATOR
-    _name_prefix = "Outlet"
     _name_suffix = "Switch"
 
     _value_oid = SNMP_OID_OUTLETS_STATUS
@@ -61,13 +58,10 @@ class SnmpSwitchEntity(SnmpEntity, SwitchEntity):
     def __init__(self, coordinator: SnmpCoordinator, unit: str, index: str) -> None:
         """Initialize a Eaton ePDU outlet switch."""
         super().__init__(coordinator, unit)
-        self._name_oid = self._name_oid.replace("unit", unit).replace("index", index)
         self._value_oid = self._value_oid.replace("unit", unit).replace("index", index)
         device_name = self.device_info["name"]
-        sensor_name = self.coordinator.data.get(self._name_oid)
-        self._attr_name = (
-            f"{device_name} {self._name_prefix} {sensor_name} {self._name_suffix}"
-        )
+        outlet_label = self.get_outlet_label(index)
+        self._attr_name = f"{device_name} {outlet_label} {self._name_suffix}"
         self._attr_unique_id = f"{DOMAIN}_{self.identifier}_{self._value_oid}"
 
         self._oid_on = SNMP_OID_OUTLETS_SWITCH_ON.replace("unit", unit).replace(
@@ -80,7 +74,10 @@ class SnmpSwitchEntity(SnmpEntity, SwitchEntity):
     @property
     def is_on(self) -> bool:
         """Return true if the switch is on."""
-        return self.coordinator.data.get(self._value_oid, False)
+        # Eaton reports 0=off, 1=on, 2=pendingOff and 3=pendingOn.
+        # Treat the pending states as their requested target so Home Assistant
+        # reflects a switch command without waiting for the next polling cycle.
+        return self.coordinator.data.get(self._value_oid) in (1, 3)
 
     @property
     def available(self) -> bool:
