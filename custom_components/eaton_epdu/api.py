@@ -282,12 +282,12 @@ class SnmpApi:
         """Cast returned value into correct type."""
         try:
             return int(value)
-        except ValueError, TypeError:
+        except (ValueError, TypeError):
             try:
                 return float(value)
-            except ValueError, TypeError:
+            except (ValueError, TypeError):
                 try:
                     return str(value)
-                except ValueError, TypeError:
+                except (ValueError, TypeError):
                     pass
         return value
